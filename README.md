@@ -2,7 +2,7 @@ JsonをPost(API定義を設定)するだけで、CRUDのRESTWebapiを作れる�
 https://qiita.com/HawkClaws/items/6f5a6938318fb7d7983d
 
 下記3つの機能があります
-- Jsonバリデーション
+- Jsonスキーマバリデーション
 - メソッド許可（GET,POST,PUT,DELETE）の指定
 - パスワード認証
 
