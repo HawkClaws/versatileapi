@@ -62,4 +62,5 @@ SampleDifin（API定義）
 TODO
 - JsonSchemaでFKバリデーション実装
 - 認証周り実装
-![image](https://user-images.githubusercontent.com/62013138/126884181-dbd111e3-657f-4398-9a92-19a5db6b36e2.png)
+![image](https://user-images.githubusercontent.com/62013138/126884266-52b789fc-516b-4594-8a5d-983edd845e74.png)
+
