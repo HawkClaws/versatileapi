@@ -2,17 +2,18 @@ JsonをPost(API定義を設定)するだけで、CRUDのRESTWebapiを作れる�
 https://qiita.com/HawkClaws/items/6f5a6938318fb7d7983d
 
 下記3つの機能があります
-#### Jsonバリデーション
-#### メソッド許可（GET,POST,PUT,DELETE）の指定
-#### パスワード認証
+- Jsonスキーマバリデーション
+- メソッド許可（GET,POST,PUT,DELETE）の指定
+- パスワード認証
 
 
-#### lang Java
-#### DB MongoDB
-#### Framework SpringBoot
+|  item  |  Technology  |
+| ---- | ---- |
+|  lang  |  Java  |
+|  Framework  |  SpringBoot  |
+|  DB  |  MongoDB  |
 
-
-SampleDifin
+SampleDifin（API定義）
 
 ```number-battle.json
 {
@@ -57,3 +58,9 @@ SampleDifin
 	]
 }
 ```
+
+TODO
+- JsonSchemaでFKバリデーション実装
+- 認証周り実装
+![image](https://user-images.githubusercontent.com/62013138/126886509-507b3fe1-66fa-445f-9cb4-b7dfe61d032c.png)
+
