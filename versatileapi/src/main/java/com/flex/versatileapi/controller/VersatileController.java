@@ -1,6 +1,7 @@
 package com.flex.versatileapi.controller;
 
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -37,22 +38,29 @@ public class VersatileController {
 //	private static List<String>  IdMethods = new ArrayList<String>(Arrays.asList("GET","PUT","DELETE"));
 
 	@Autowired
-	private VersatileService versatileService;
-
-	@Autowired
 	private UrlConverter urlConverter;
-	
+
 	@Autowired
 	RealtimeDatabaseRepotitory realtimeDatabaseRepotitory;
 
 	Gson gson = new Gson();
 
+	@Autowired
+	private VersatileService versatileService;
+
+//	@Autowired
+//	public VersatileController(VersatileService versatileService) {
+//		this.versatileService = versatileService;
+//		this.versatileService.setRepositoryName(ConstData.DATA_STORE);
+//	}
+
 //	@CrossOrigin()
 	@RequestMapping(value = "/api/**")
 	public ResponseEntity<Object> versatileApi(HttpServletRequest request)
 			throws IOException, InterruptedException, ExecutionException {
-		
-		//URLからリソース（DBテーブル）やリソースのID特定
+		this.versatileService.setRepositoryName(ConstData.DATA_STORE);
+
+		// URLからリソース（DBテーブル）やリソースのID特定
 		RepositoryUrlInfo info = urlConverter.getRepositoryInfo(request.getRequestURI());
 		String method = request.getMethod();
 		String body = request.getReader().lines().collect(Collectors.joining("\r\n"));
@@ -61,16 +69,15 @@ public class VersatileController {
 
 		ResponseEntity responseEntity = null;
 
-			//JsonSchemaバリデーション・認証・許可されているメソッドをチェック
-			responseEntity = versatileService.checkUseApi(info.repositoryKey, info.id, method, body,
-					request.getHeader(ConstData.AUTHORIZATION));
-
+		// JsonSchemaバリデーション・認証・許可されているメソッドをチェック
+		responseEntity = versatileService.checkUseApi(info.repositoryKey, info.id, method, body,
+				request.getHeader(ConstData.AUTHORIZATION));
 
 		if (responseEntity != null)
 			return responseEntity;
 
 		Object response = null;
-		//各メソッドの処理を実行
+		// 各メソッドの処理を実行
 		switch (method) {
 		case HttpMethods.GET:
 			try {
@@ -88,12 +95,12 @@ public class VersatileController {
 			response = versatileService.post(info.id, info.repositoryKey, request.getQueryString(), body,
 					request.getRemoteAddr());
 			return new ResponseEntity<>(response, new HttpHeaders(), HttpStatus.CREATED);
-			
+
 		case HttpMethods.PUT:
 			response = versatileService.put(info.id, info.repositoryKey, request.getQueryString(), body,
 					request.getRemoteAddr());
 			return new ResponseEntity<>(response, new HttpHeaders(), HttpStatus.OK);
-			
+
 		case HttpMethods.DELETE:
 			response = versatileService.delete(info.id, info.repositoryKey, request.getQueryString());
 			return new ResponseEntity<>(response, new HttpHeaders(), HttpStatus.NO_CONTENT);
@@ -104,31 +111,33 @@ public class VersatileController {
 
 	private void writeLog(HttpServletRequest request, String body) {
 		try {
-		String ip = request.getRemoteAddr();
+			String ip = request.getRemoteAddr();
 
-		// テストはログ出力しない
-		if (ip.equals("127.0.0.1"))
-			return;
+			// テストはログ出力しない
+			if (ip.equals("127.0.0.1"))
+				return;
 
-		Date d = new Date();
-        SimpleDateFormat d1 = new SimpleDateFormat("yyyy-MM-dd");
-        String c1 = d1.format(d); 
-        
-        SimpleDateFormat d2 = new SimpleDateFormat("HH:mm:ss");
-        String c2 = d2.format(d); 
-		
-		Map<String, Object> log = new HashMap<String, Object>();
-		log.put("uri", request.getRequestURI());
-		log.put("method", request.getMethod());
-		log.put("body", body);
-		log.put("authorization", request.getHeader(ConstData.AUTHORIZATION));
-		log.put("referer", request.getHeader("REFERER"));
-		log.put("ip", request.getRemoteAddr());
-		
-		
-		realtimeDatabaseRepotitory.insert("log/"+c1+"/"+request.getMethod(), c2, log);
+			Date d = new Date();
+			SimpleDateFormat d1 = new SimpleDateFormat("yyyy-MM-dd");
+			String c1 = d1.format(d);
+
+			SimpleDateFormat d2 = new SimpleDateFormat("HH:mm:ss");
+			String c2 = d2.format(d);
+
+			Map<String, Object> log = new HashMap<String, Object>();
+			String url = request.getRequestURI();
+			if (request.getQueryString() != null)
+				url += URLDecoder.decode(request.getQueryString(), "UTF-8");
+			log.put("uri", url);
+			log.put("method", request.getMethod());
+			log.put("body", body);
+			log.put("authorization", request.getHeader(ConstData.AUTHORIZATION));
+			log.put("referer", request.getHeader("REFERER"));
+			log.put("ip", request.getRemoteAddr());
+
+			realtimeDatabaseRepotitory.insert("log/" + c1 + "/" + request.getMethod(), c2, log);
 		} catch (Exception e) {
-
+			System.out.println(e.getMessage());
 		}
 	}
 

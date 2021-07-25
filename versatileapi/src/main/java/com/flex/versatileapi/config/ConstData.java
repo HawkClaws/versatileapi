@@ -1,6 +1,9 @@
 package com.flex.versatileapi.config;
 
 public class ConstData {
+	public final static String DATA_STORE = "DataStore";
+	public final static String API_SETTING_STORE = "ApiSettingStore";
+	
 	public final static String JSON_SCHEMA = "JSONSCHEMA";
 	public final static String REPOSITORY_SECRET = "REPOSITORYSECRET";
 	public final static String ALLOW_METHODS = "ALLOWMETHODS";

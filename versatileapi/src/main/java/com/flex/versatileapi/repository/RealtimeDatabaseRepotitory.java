@@ -35,6 +35,7 @@ public class RealtimeDatabaseRepotitory implements IRepository {
 
 	}
 
+
 	private void FirebaseInit() {
 		InputStream stream_json = null;
 		try {

@@ -6,17 +6,18 @@ import java.util.List;
 
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.stereotype.Component;
 
 import com.flex.versatileapi.model.QueryModel;
 
 import lombok.Data;
 
-@Component
+@Configurable
 public class ODataMongoConverter {
 
-	@Autowired
-	ODataParser oDataParser;
+//	@Autowired
+	ODataParser oDataParser = new ODataParser();
 
 	// TODO適切なエラーを返す
 

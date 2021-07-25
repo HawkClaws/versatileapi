@@ -5,16 +5,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.NumberUtils;
 
 import com.flex.versatileapi.config.ConstData;
+import com.flex.versatileapi.config.SystemConfig;
 import com.flex.versatileapi.model.QueryModel;
 import com.flex.versatileapi.model.QueryType;
+import com.flex.versatileapi.model.RepositoryInfo;
 import com.flex.versatileapi.service.CollectionEx;
 import com.flex.versatileapi.service.HashService;
 import com.flex.versatileapi.service.ODataMongoConverter;
@@ -29,28 +33,37 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.UpdateOptions;
 
-@Service
+@Configurable
 public class MongoRepository implements IRepository {
 
-//	@Value("${spring.datasource.mongoConnectionString}")
-//	private String mongoConnectionString;
-
-	private String DATA_STORE = "DataStore";
-
 //	private MongoClient mongoClient = null;
-	@Autowired
-	private ODataMongoConverter oDataMongoConverter;
 
-	private MongoDatabase db = null;
+	private static ConcurrentHashMap<String, MongoDatabase> mongoDbList = new ConcurrentHashMap<String, MongoDatabase>();
 
-	public MongoRepository(@Value("${spring.datasource.mongoConnectionString}") String mongoConnectionString) {
-		ConnectionString connectionString = new ConnectionString(mongoConnectionString);
-		MongoClientSettings settings = MongoClientSettings.builder().applyConnectionString(connectionString).build();
+	private ODataMongoConverter oDataMongoConverter = new ODataMongoConverter();
 
-		// MongoDBクライントを生成する
-		MongoClient client = MongoClients.create(settings);
+	private MongoDatabase db = null;	
 
-		db = client.getDatabase(DATA_STORE);
+	public MongoRepository(String dbName) {
+//		ConnectionString connectionString = new ConnectionString(SystemConfig.getMongoConnectionString());
+//		MongoClientSettings settings = MongoClientSettings.builder().applyConnectionString(connectionString)
+//				.build();
+//		MongoClient client = MongoClients.create(settings);
+		this.db = getDatabase(dbName);
+	}
+
+	private MongoDatabase getDatabase(String dbName) {
+		if (mongoDbList.containsKey(dbName)) {
+			return mongoDbList.get(dbName);
+		} else {
+			ConnectionString connectionString = new ConnectionString(SystemConfig.getMongoConnectionString());
+			MongoClientSettings settings = MongoClientSettings.builder().applyConnectionString(connectionString)
+					.build();
+			MongoClient client = MongoClients.create(settings);
+			MongoDatabase dbTemp = client.getDatabase(dbName);
+			mongoDbList.put(dbName, dbTemp);
+			return dbTemp;
+		}
 	}
 
 	@Override
@@ -148,7 +161,7 @@ public class MongoRepository implements IRepository {
 
 		List<Object> results = new ArrayList<Object>();
 		for (Document doc : docs) {
-			
+
 			doc.remove("_id");
 //			doc.remove("id");
 			results.add(doc);

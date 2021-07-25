@@ -2,7 +2,6 @@ package com.flex.versatileapi.service;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -10,38 +9,31 @@ import java.util.stream.Collectors;
 
 import javax.json.stream.JsonParsingException;
 
-import org.leadpony.justify.api.JsonSchema;
 import org.leadpony.justify.api.Problem;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import com.flex.versatileapi.config.ConstData;
+import com.flex.versatileapi.config.SystemConfig;
 import com.flex.versatileapi.exceptions.ODataParseException;
 import com.flex.versatileapi.model.RepositoryInfo;
+import com.flex.versatileapi.repository.IRepository;
 import com.flex.versatileapi.repository.MongoRepository;
 import com.google.api.client.http.HttpMethods;
 import com.google.gson.Gson;
-import com.google.firebase.internal.Objects;
 
 @Component
 public class VersatileService {
-	@Autowired
+//	@Autowired
 //	RealtimeDatabaseRepotitory repository;
-	MongoRepository repository;
-	private final static String DATA_STORE = "DataStore";
-
-	@Value("${spring.datasource.onlyDataSchemaRepository}")
-	private boolean onlyDataSchemaRepository;
-
-	@Value("${spring.datasource.useSchema}")
-	private boolean useSchema;
-
-	@Value("${spring.datasource.hashKey}")
-	private String hashKey;
+	private IRepository repository = null;
+	
+	public void setRepositoryName(String repositoryName) {
+		this.repository = new MongoRepository(repositoryName);
+	}
 
 	@Autowired
 	ODataParser oDataParser;
@@ -72,7 +64,7 @@ public class VersatileService {
 		Timestamp now = new Timestamp(System.currentTimeMillis());
 		value.put(ConstData.REG_DATE, now);
 		value.put(ConstData.UPD_DATE, now);
-		String userId = hashService.shortGenerateHashPassword(hashKey + ipAddress);
+		String userId = hashService.shortGenerateHashPassword(SystemConfig.getHashKey() + ipAddress);
 		value.put(ConstData.UNIQUE_ID, userId);
 
 		// TODOリファクタ
@@ -95,7 +87,8 @@ public class VersatileService {
 
 		// TODOリファクタ
 		if (id.equals(ConstData.UNIQUE)) {
-			return repository.insert(repositoryKey, hashService.shortGenerateHashPassword(hashKey + ipAddress), value);
+			return repository.update(repositoryKey,
+					hashService.shortGenerateHashPassword(SystemConfig.getHashKey() + ipAddress), value);
 		} else {
 			return repository.update(repositoryKey, id, value);
 		}
@@ -122,12 +115,12 @@ public class VersatileService {
 			repositoryKey += id;
 		}
 
-		if (useSchema == false)
+		if (SystemConfig.isUseSchema() == false)
 			return null;
 
 		RepositoryInfo info = null;
 
-		if (onlyDataSchemaRepository) {
+		if (SystemConfig.isOnlyDataSchemaRepository()) {
 			try {
 
 				info = repositoryValidator.getRepositoryInfo(repositoryKey, this);
@@ -139,7 +132,7 @@ public class VersatileService {
 		}
 
 		if (info != null) {
-			//Can't find ApiDifin
+			// Can't find ApiDifin
 			ResponseEntity res = repositoryValidator.judgeUse(info, method, authorization, id);
 			if (res != null)
 				return res;
@@ -149,14 +142,14 @@ public class VersatileService {
 
 			if (info != null) {
 				List<Problem> problems = new ArrayList<Problem>();
-				
+
 				try {
 					problems = repositoryValidator.validateJson(json.replace("'", "\""), info.getJsonSchema());
 				} catch (JsonParsingException e) {
 					return new ResponseEntity<>(gson.toJson("JsonParseError:" + e.getMessage()), new HttpHeaders(),
 							HttpStatus.BAD_REQUEST);
 				}
-				
+
 				if (problems.size() > 0) {
 					List<String> problemList = problems.stream().map(x -> x.getMessage()).collect(Collectors.toList());
 					return new ResponseEntity<>(gson.toJson(problemList), new HttpHeaders(), HttpStatus.BAD_REQUEST);

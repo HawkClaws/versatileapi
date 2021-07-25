@@ -35,7 +35,7 @@ import lombok.Data;
 public class RepositoryValidator {
 
 	protected JsonValidationService jvs = JsonValidationService.newInstance();
-	protected ConcurrentHashMap<String, RepositoryInfo> schemaMap = new ConcurrentHashMap<String, RepositoryInfo>();
+	protected static ConcurrentHashMap<String, RepositoryInfo> schemaMap = new ConcurrentHashMap<String, RepositoryInfo>();
 	Gson gson = new Gson();
 
 	@Autowired

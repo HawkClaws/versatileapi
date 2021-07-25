@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.flex.versatileapi.config.ConstData;
+import com.flex.versatileapi.config.SystemConfig;
 import com.flex.versatileapi.exceptions.ODataParseException;
 import com.flex.versatileapi.model.RepositoryUrlInfo;
 import com.flex.versatileapi.service.HashService;
@@ -34,8 +35,6 @@ import com.google.gson.Gson;
 
 @RestController
 public class AdminController {
-	@Autowired
-	private VersatileService versatileService;
 
 	@Autowired
 	private UrlConverter urlConverter;
@@ -48,13 +47,20 @@ public class AdminController {
 
 	JsonValidationService jvs = JsonValidationService.newInstance();
 
-	@Value("${spring.datasource.adminAuthorization}")
-	private String adminAuthorization;
+	@Autowired
+	private  VersatileService versatileService;
+
+	
+//	public AdminController(VersatileService versatileService) {
+//		this.versatileService = versatileService;
+//		this.versatileService.setRepositoryName(ConstData.API_SETTING_STORE);
+//	}
 
 	Gson gson = new Gson();
 
 	@RequestMapping(value = "/admin/repositorylist")
 	public ResponseEntity<Object> getRepository(HttpServletRequest request) {
+		this.versatileService.setRepositoryName(ConstData.API_SETTING_STORE);
 		// TODO 認証リファクタ
 		ResponseEntity resEnt = null;
 		resEnt = authorization(request.getHeader(ConstData.ADMIN_AUTHORIZATION));
@@ -66,6 +72,7 @@ public class AdminController {
 
 	@RequestMapping(value = "/admin/apisetting/**")
 	public ResponseEntity<Object> registerSchema(HttpServletRequest request) throws IOException, ODataParseException {
+		this.versatileService.setRepositoryName(ConstData.API_SETTING_STORE);
 		ResponseEntity resEnt = null;
 		resEnt = authorization(request.getHeader(ConstData.ADMIN_AUTHORIZATION));
 		if (resEnt != null)
@@ -113,8 +120,8 @@ public class AdminController {
 	}
 
 	private ResponseEntity authorization(String authorization) {
-		if (authorization == null
-				|| adminAuthorization.equals(hashService.generateHashPassword(authorization)) == false) {
+		if (authorization == null || SystemConfig.getAdminAuthorization()
+				.equals(hashService.generateHashPassword(authorization)) == false) {
 			return new ResponseEntity<>("", new HttpHeaders(), HttpStatus.FORBIDDEN);
 
 		}

@@ -11,7 +11,7 @@ import org.springframework.web.client.RestTemplate;
 public class RateLimitTest {
 	private static RestTemplate restTemplate = new RestTemplate();
 	
-	//@Test
+//	@Test
 	void RateLimit_超過() {
 		String repository = "ratelimit";// なんでもOK!なのがこのシステムの魅力！
 		String baseUrl = TestConfig.ApiUrl() + repository;
@@ -34,7 +34,7 @@ public class RateLimitTest {
 		
 		try {
 			
-			for (int i = 0; i < 121; i++) {
+			for (int i = 0; i < 12; i++) {
 				// 登録
 				String id = TestHelper.post(baseUrl, requestJson);
 			}
@@ -42,7 +42,7 @@ public class RateLimitTest {
 			resStatusCode = exception.getRawStatusCode();
 		}
 
-		assertTrue(resStatusCode == 249);
+		assertTrue(resStatusCode == 429);
 
 	}
 }
