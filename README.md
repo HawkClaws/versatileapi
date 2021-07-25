@@ -7,14 +7,13 @@ https://qiita.com/HawkClaws/items/6f5a6938318fb7d7983d
 - パスワード認証
 
 
-lang Java
+|  item  |  Technology  |
+| ---- | ---- |
+|  lang  |  Java  |
+|  Framework  |  SpringBoot  |
+|  DB  |  MongoDB  |
 
-DB MongoDB
-
-Framework SpringBoot
-
-
-SampleDifin
+SampleDifin（API定義）
 
 ```number-battle.json
 {
@@ -59,3 +58,8 @@ SampleDifin
 	]
 }
 ```
+
+TODO
+- JsonSchemaでFKバリデーション実装
+- 認証周り実装
+![image](https://user-images.githubusercontent.com/62013138/126884181-dbd111e3-657f-4398-9a92-19a5db6b36e2.png)
