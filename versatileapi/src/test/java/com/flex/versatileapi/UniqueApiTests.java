@@ -78,12 +78,15 @@ public class UniqueApiTests {
 		
 		//登録
 		String id = TestHelper.post(baseUrl + "/" + ConstData.UNIQUE, requestJson);
+		String id2 = TestHelper.post(baseUrl + "/" + ConstData.UNIQUE, requestJson);
+		assertTrue(id.equals(id2));
 		
 		//取得
 		String responseJson1  = restTemplate.getForObject(baseUrl + "/" + id, String.class);
 		
 		//更新
-		 id = TestHelper.put(baseUrl + "/" + ConstData.UNIQUE, requestJson);
+		String id3 = TestHelper.put(baseUrl + "/" + ConstData.UNIQUE, requestJson);
+		assertTrue(id.equals(id3));
 		 
 		//取得
 		String responseJson2  = restTemplate.getForObject(baseUrl + "/" + id, String.class);

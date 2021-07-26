@@ -42,6 +42,9 @@ public class VersatileBase {
 	
 	@Autowired
 	private HashService hashService;
+	
+	@Autowired
+	ApiSettingInfo repositoryInfo;
 
 	private final static String ALL = "all";
 	private final static String COUNT = "count";
@@ -127,7 +130,7 @@ public class VersatileBase {
 
 		if (SystemConfig.isOnlyDataSchemaRepository()) {
 			try {
-				ApiSettingInfo repositoryInfo = new ApiSettingInfo(hashService, repositoryValidator, this);
+//				ApiSettingInfo repositoryInfo = new ApiSettingInfo(hashService, repositoryValidator, this);
 				info = repositoryInfo.getApiSetting(repositoryKey, this);
 				if (info == null)
 					return new ResponseEntity<>("", new HttpHeaders(), HttpStatus.NOT_IMPLEMENTED);
@@ -166,7 +169,7 @@ public class VersatileBase {
 	}
 
 	public void clearRepositoryInfoCache() {
-		new ApiSettingInfo(hashService, repositoryValidator, this).clearRepositoryInfoCache();
+		repositoryInfo.clearRepositoryInfoCache();
 	}
 
 	public String[] getRepository() {

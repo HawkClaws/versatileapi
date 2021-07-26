@@ -8,6 +8,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.leadpony.justify.api.JsonSchema;
 import org.leadpony.justify.api.JsonValidationService;
 import org.leadpony.justify.api.Problem;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.flex.versatileapi.config.ConstData;
 import com.flex.versatileapi.exceptions.ODataParseException;
@@ -19,6 +21,7 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
+@Component
 public class ApiSettingInfo {
 
 	Gson gson = new GsonBuilder().registerTypeAdapter(Double.class, new JsonSerializer<Double>() {
@@ -29,22 +32,25 @@ public class ApiSettingInfo {
 		}
 	}).create();
 
-	JsonValidationService jvs = JsonValidationService.newInstance();
+	private JsonValidationService jvs = JsonValidationService.newInstance();
 
+	@Autowired
 	private HashService hashService;
 
+	@Autowired
 	private RepositoryValidator repositoryValidator;
 
+	@Autowired
 	private VersatileBase versatileBase;
 
 	protected static ConcurrentHashMap<String, ApiSettingModel> repositoryInfoMap = new ConcurrentHashMap<String, ApiSettingModel>();
 
-	public ApiSettingInfo(HashService hashService, RepositoryValidator repositoryValidator,
-			VersatileBase versatileBase) {
-		this.hashService = hashService;
-		this.repositoryValidator = repositoryValidator;
-		this.versatileBase = versatileBase;
-	}
+//	public ApiSettingInfo(HashService hashService, RepositoryValidator repositoryValidator,
+//			VersatileBase versatileBase) {
+//		this.hashService = hashService;
+//		this.repositoryValidator = repositoryValidator;
+//		this.versatileBase = versatileBase;
+//	}
 
 	public List<Problem> validate(String body) {
 

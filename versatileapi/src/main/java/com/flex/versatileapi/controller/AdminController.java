@@ -15,7 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.flex.versatileapi.config.ConstData;
@@ -41,8 +43,8 @@ public class AdminController {
 	@Autowired
 	private HashService hashService;
 
-	@Autowired
-	private RepositoryValidator repositoryValidator;
+//	@Autowired
+//	private RepositoryValidator repositoryValidator;
 
 	private JsonValidationService jvs = JsonValidationService.newInstance();
 
@@ -51,10 +53,16 @@ public class AdminController {
 	
 	@Autowired
 	private AuthenticationService authenticationService;
+	
+	@Autowired
+	ApiSettingInfo repositoryInfo;
 
 	private Gson gson = new Gson();
 
-	@RequestMapping(value = "/admin/repositorylist")
+	/**
+	 *  API定義のキーリストを返します
+	 */
+	@GetMapping(value = "/admin/apisettinglist")
 	public ResponseEntity<Object> getRepository(HttpServletRequest request) {
 		this.versatileBase.setRepositoryName(ConstData.API_SETTING_STORE);
 		// TODO 認証リファクタ
@@ -65,27 +73,31 @@ public class AdminController {
 
 		return new ResponseEntity<>(this.versatileBase.getRepository(), new HttpHeaders(), HttpStatus.OK);
 	}
-
+	
+	/**
+	 *  Api定義の登録・更新・取得・削除
+	 */
 	@RequestMapping(value = "/admin/apisetting/**")
-	public ResponseEntity<Object> registerSchema(HttpServletRequest request) throws IOException, ODataParseException {
+	public ResponseEntity<Object> registerApiSetting(HttpServletRequest request) throws IOException, ODataParseException {
 		this.versatileBase.setRepositoryName(ConstData.API_SETTING_STORE);
+		RepositoryUrlInfo info = urlConverter.getRepositoryInfo2(request.getRequestURI());
+		
+		if(request.getMethod().equals(HttpMethods.GET)) {
+			return new ResponseEntity<>(this.versatileBase.get(info.getId(), ConstData.JSON_SCHEMA, ""), new HttpHeaders(), HttpStatus.OK);
+		}		
 
 		ResponseEntity resEnt = authorization(request.getHeader(ConstData.ADMIN_AUTHORIZATION));
 		if (resEnt != null)
 			return resEnt;
 
-		RepositoryUrlInfo info = urlConverter.getRepositoryInfo2(request.getRequestURI());
 
 		Object response = null;
 
 		switch (request.getMethod()) {
-		case HttpMethods.GET:
-			response = this.versatileBase.get(info.getId(), ConstData.JSON_SCHEMA, "");
-			break;
 
 		case HttpMethods.POST:
 		case HttpMethods.PUT:
-			ApiSettingInfo repositoryInfo = new ApiSettingInfo(hashService, repositoryValidator, this.versatileBase);
+//			ApiSettingInfo repositoryInfo = new ApiSettingInfo(hashService, repositoryValidator, this.versatileBase);
 
 			String body = request.getReader().lines().collect(Collectors.joining("\r\n"));
 
@@ -103,8 +115,6 @@ public class AdminController {
 				ApiSettingModel apiSetting = repositoryInfo.toApiSettingModel(body);
 				response = repositoryInfo.create(apiSetting);
 				
-				//AuthGroup作成
-				response = repositoryInfo.create(apiSetting);
 			} catch (JsonValidatingException e) {
 				return new ResponseEntity<>(e.getMessage(), new HttpHeaders(), HttpStatus.BAD_REQUEST);
 			}
@@ -119,6 +129,11 @@ public class AdminController {
 
 		return new ResponseEntity<>(response, new HttpHeaders(), HttpStatus.OK);
 	}
+	
+//	@RequestMapping(value = "/admin/authgroup/**")
+//	public ResponseEntity<Object> registerAuthGroup(HttpServletRequest request){
+//		
+//	}
 
 	private ResponseEntity authorization(String authorization) {
 		if (authorization == null || SystemConfig.getAdminAuthorization()

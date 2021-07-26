@@ -57,21 +57,29 @@ public class VersatileService {
 			}
 
 		case HttpMethods.POST:
+			String userId = hashService.shortGenerateHashPassword(ipAddress);
+			String postId = UUID.randomUUID().toString();
+			
 			// TODO UNIQUE(非推奨)
-			if (id.equals(ConstData.UNIQUE) == false) {
+			if (id.equals(ConstData.UNIQUE)) {
+				postId = userId;
+			}else {
 				if (repositoryKey.equals("") == false)
 					repositoryKey += "/";
 				repositoryKey += id;
 			}
 
-			String userId = hashService.shortGenerateHashPassword(ipAddress);
-
-			response = versatileBase.post(UUID.randomUUID().toString(), repositoryKey, queryString, body, userId);
+			response = versatileBase.post(postId, repositoryKey, queryString, body, userId);
 			return new ResponseEntity<>(response, new HttpHeaders(), HttpStatus.CREATED);
 
 		case HttpMethods.PUT:
 
 			String userId2 = hashService.shortGenerateHashPassword(ipAddress);
+			
+			// TODO UNIQUE(非推奨)
+			if (id.equals(ConstData.UNIQUE)) {
+				id = userId2;
+			}
 
 			response = versatileBase.put(id, repositoryKey, queryString, body, userId2);
 			return new ResponseEntity<>(response, new HttpHeaders(), HttpStatus.OK);
