@@ -1,6 +1,5 @@
 package com.flex.versatileapi.repository;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -8,21 +7,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bson.Document;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 import org.springframework.util.NumberUtils;
 
-import com.flex.versatileapi.config.ConstData;
 import com.flex.versatileapi.config.SystemConfig;
 import com.flex.versatileapi.model.QueryModel;
-import com.flex.versatileapi.model.QueryType;
-import com.flex.versatileapi.model.RepositoryInfo;
 import com.flex.versatileapi.service.CollectionEx;
-import com.flex.versatileapi.service.HashService;
 import com.flex.versatileapi.service.ODataMongoConverter;
-import com.flex.versatileapi.service.ODataParser;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.FindIterable;
@@ -88,8 +79,6 @@ public class MongoRepository implements IRepository {
 
 	private Map<String, String> upsert(String repository, String id, Map<String, Object> value) {
 		MongoCollection<Document> docs = db.getCollection(repository);
-		Timestamp now = new Timestamp(System.currentTimeMillis());
-		value.put(ConstData.UPD_DATE, now);
 
 		// updateオブジェクト
 		Document update = new Document();

@@ -16,7 +16,7 @@ import com.flex.versatileapi.model.QueryType;
 
 @Component
 public class ODataParser {
-	public List<QueryModel> queryParser(String queryString) throws ODataParseException {
+	public List<QueryModel> parse(String queryString) throws ODataParseException {
 		if (queryString == null) {
 			return new ArrayList<QueryModel>();
 		}

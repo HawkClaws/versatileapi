@@ -2,6 +2,8 @@ package com.flex.versatileapi;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Map;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.web.client.RestClientResponseException;
@@ -70,7 +72,7 @@ class VersatileApiTests {
 		String repository = "repositoryEx";
 		String baseUrl = TestConfig.ApiUrl() + repository;
 
-		String schema = "{  'jsonSchema':{'$schema': 'http://json-schema.org/draft-04/schema#', 'additionalProperties': true,  'type': 'object',  'properties': {    'category': {      'type': 'string'    },    'name': {      'type': 'string'    },    'value': {      'type': 'string'    },    'detail': {      'type': 'object',      'properties': {        'weight': {          'type': 'string'        },        'description': {          'type': 'string'        }      },      'required': [        'weight',        'description'      ]    }  }},'apiSecret':'','methodSettings':[],'apiUrl':'%s'}";
+		String schema = String.format("{  'jsonSchema':{'$schema': 'http://json-schema.org/draft-04/schema#', 'additionalProperties': true,  'type': 'object',  'properties': {    'category': {      'type': 'string'    },    'name': {      'type': 'string'    },    'value': {      'type': 'string'    },    'detail': {      'type': 'object',      'properties': {        'weight': {          'type': 'string'        },        'description': {          'type': 'string'        }      },      'required': [        'weight',        'description'      ]    }  }},'apiSecret':'','methodSettings':[],'apiUrl':'%s'}",repository);
 		schema = schema.replace("'", "\"");
 
 
@@ -99,7 +101,11 @@ class VersatileApiTests {
 					|| TestHelper.jsonEquals(requestJson2, gson.toJson(data))
 					|| TestHelper.jsonEquals(requestJson3, gson.toJson(data)), data.toString());
 		}
-
+		
+		//count
+		Map<String,Object> map = restTemplate.getForObject(baseUrl + "/count", Map.class);
+		assertTrue((int)map.get("count") == 3);
+		
 		// 削除
 		restTemplate.delete(baseUrl + "/" + id1);
 		restTemplate.delete(baseUrl + "/" + id2);

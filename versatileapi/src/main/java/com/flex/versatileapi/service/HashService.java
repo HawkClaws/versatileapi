@@ -7,6 +7,8 @@ import java.security.NoSuchAlgorithmException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.flex.versatileapi.config.SystemConfig;
+
 @Component
 public class HashService {
 
@@ -30,6 +32,8 @@ public class HashService {
 			// TODO 自動生成された catch ブロック
 			e.printStackTrace();
 		}
+		rawPassword  += SystemConfig.getHashKey();
+		
 		byte[] result = digest.digest(rawPassword.getBytes());
 
 		return String.format("%040x", new BigInteger(1, result));

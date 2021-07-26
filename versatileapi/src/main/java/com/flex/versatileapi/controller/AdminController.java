@@ -2,9 +2,7 @@ package com.flex.versatileapi.controller;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.json.stream.JsonParsingException;
@@ -14,7 +12,6 @@ import org.leadpony.justify.api.JsonValidatingException;
 import org.leadpony.justify.api.JsonValidationService;
 import org.leadpony.justify.api.Problem;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,12 +21,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.flex.versatileapi.config.ConstData;
 import com.flex.versatileapi.config.SystemConfig;
 import com.flex.versatileapi.exceptions.ODataParseException;
+import com.flex.versatileapi.model.ApiSettingModel;
 import com.flex.versatileapi.model.RepositoryUrlInfo;
+import com.flex.versatileapi.service.ApiSettingInfo;
+import com.flex.versatileapi.service.AuthenticationService;
 import com.flex.versatileapi.service.HashService;
-import com.flex.versatileapi.service.RepositoryInfo;
 import com.flex.versatileapi.service.RepositoryValidator;
 import com.flex.versatileapi.service.UrlConverter;
-import com.flex.versatileapi.service.VersatileService;
+import com.flex.versatileapi.service.VersatileBase;
 import com.google.api.client.http.HttpMethods;
 import com.google.gson.Gson;
 
@@ -45,36 +44,33 @@ public class AdminController {
 	@Autowired
 	private RepositoryValidator repositoryValidator;
 
-	JsonValidationService jvs = JsonValidationService.newInstance();
+	private JsonValidationService jvs = JsonValidationService.newInstance();
 
 	@Autowired
-	private  VersatileService versatileService;
-
+	private VersatileBase versatileBase;
 	
-//	public AdminController(VersatileService versatileService) {
-//		this.versatileService = versatileService;
-//		this.versatileService.setRepositoryName(ConstData.API_SETTING_STORE);
-//	}
+	@Autowired
+	private AuthenticationService authenticationService;
 
-	Gson gson = new Gson();
+	private Gson gson = new Gson();
 
 	@RequestMapping(value = "/admin/repositorylist")
 	public ResponseEntity<Object> getRepository(HttpServletRequest request) {
-		this.versatileService.setRepositoryName(ConstData.API_SETTING_STORE);
+		this.versatileBase.setRepositoryName(ConstData.API_SETTING_STORE);
 		// TODO 認証リファクタ
 		ResponseEntity resEnt = null;
 		resEnt = authorization(request.getHeader(ConstData.ADMIN_AUTHORIZATION));
 		if (resEnt != null)
 			return resEnt;
 
-		return new ResponseEntity<>(versatileService.getRepository(), new HttpHeaders(), HttpStatus.OK);
+		return new ResponseEntity<>(this.versatileBase.getRepository(), new HttpHeaders(), HttpStatus.OK);
 	}
 
 	@RequestMapping(value = "/admin/apisetting/**")
 	public ResponseEntity<Object> registerSchema(HttpServletRequest request) throws IOException, ODataParseException {
-		this.versatileService.setRepositoryName(ConstData.API_SETTING_STORE);
-		ResponseEntity resEnt = null;
-		resEnt = authorization(request.getHeader(ConstData.ADMIN_AUTHORIZATION));
+		this.versatileBase.setRepositoryName(ConstData.API_SETTING_STORE);
+
+		ResponseEntity resEnt = authorization(request.getHeader(ConstData.ADMIN_AUTHORIZATION));
 		if (resEnt != null)
 			return resEnt;
 
@@ -84,12 +80,12 @@ public class AdminController {
 
 		switch (request.getMethod()) {
 		case HttpMethods.GET:
-			response = versatileService.get(info.id, ConstData.JSON_SCHEMA, "");
+			response = this.versatileBase.get(info.getId(), ConstData.JSON_SCHEMA, "");
 			break;
 
 		case HttpMethods.POST:
 		case HttpMethods.PUT:
-			RepositoryInfo repositoryInfo = new RepositoryInfo(hashService, repositoryValidator, versatileService);
+			ApiSettingInfo repositoryInfo = new ApiSettingInfo(hashService, repositoryValidator, this.versatileBase);
 
 			String body = request.getReader().lines().collect(Collectors.joining("\r\n"));
 
@@ -103,16 +99,21 @@ public class AdminController {
 				return new ResponseEntity<>(problems.toString(), new HttpHeaders(), HttpStatus.BAD_REQUEST);
 
 			try {
-				response = repositoryInfo.create(request.getMethod(), body);
+				//Api定義作成
+				ApiSettingModel apiSetting = repositoryInfo.toApiSettingModel(body);
+				response = repositoryInfo.create(apiSetting);
+				
+				//AuthGroup作成
+				response = repositoryInfo.create(apiSetting);
 			} catch (JsonValidatingException e) {
 				return new ResponseEntity<>(e.getMessage(), new HttpHeaders(), HttpStatus.BAD_REQUEST);
 			}
 
-			versatileService.clearSchemaCache();
+			versatileBase.clearRepositoryInfoCache();
 			break;
 		case HttpMethods.DELETE:
-			response = versatileService.delete(info.id, ConstData.JSON_SCHEMA, "");
-			versatileService.clearSchemaCache();
+			response = versatileBase.delete(info.getId(), ConstData.JSON_SCHEMA, "");
+			versatileBase.clearRepositoryInfoCache();
 			break;
 		}
 

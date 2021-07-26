@@ -41,19 +41,22 @@ public class TestHelper {
 
 	public static String post(String url, String json) {
 
+		json = json.replace("'", "\"");
 		return upsertHelper(url, json, HttpMethod.POST, new HashMap<String, String>());
 	}
 
 	public static String post(String url, String json, Map<String, String> additionalHeaders) {
-
+		json = json.replace("'", "\"");
 		return upsertHelper(url, json, HttpMethod.POST, additionalHeaders);
 	}
 
 	public static String put(String url, String json) {
+		json = json.replace("'", "\"");
 		return upsertHelper(url, json, HttpMethod.PUT, new HashMap<String, String>());
 	}
 
 	public static String put(String url, String json, Map<String, String> additionalHeaders) {
+		json = json.replace("'", "\"");
 		return upsertHelper(url, json, HttpMethod.PUT, additionalHeaders);
 	}
 
