@@ -35,16 +35,13 @@ public class VersatileBase {
 	}
 
 	@Autowired
-	ODataParser oDataParser;
+	private ODataParser oDataParser;
 
 	@Autowired
-	RepositoryValidator repositoryValidator;
+	private RepositoryValidator repositoryValidator;
 	
 	@Autowired
-	private HashService hashService;
-	
-	@Autowired
-	ApiSettingInfo repositoryInfo;
+	private ApiSettingInfo repositoryInfo;
 
 	private final static String ALL = "all";
 	private final static String COUNT = "count";
@@ -72,18 +69,6 @@ public class VersatileBase {
 		value.put(ConstData.UNIQUE_ID, userId);
 
 		return repository.insert(repositoryKey, id, value);
-
-		// TODOリファクタ
-//		if (id.equals(ConstData.UNIQUE)) {
-//			return repository.insert(repositoryKey, userId, value);
-//		} else if (repositoryKey.equals(ConstData.JSON_SCHEMA)) {
-//			return repository.insert(repositoryKey, id, value);
-//		} else {
-//			if (repositoryKey.equals("") == false)
-//				repositoryKey += "/";
-//			repositoryKey += id;
-//			return repository.insert(repositoryKey, UUID.randomUUID().toString(), value);
-//		}
 	}
 
 	public Object put(String id, String repositoryKey, String queryString, String body, String userId) {
@@ -91,13 +76,6 @@ public class VersatileBase {
 		value.put(ConstData.UPD_DATE, new Timestamp(System.currentTimeMillis()));
 		
 		return repository.update(repositoryKey, id, value);
-
-//		// TODOリファクタ
-//		if (id.equals(ConstData.UNIQUE)) {
-//			return repository.update(repositoryKey, userId, value);
-//		} else {
-//			return repository.update(repositoryKey, id, value);
-//		}
 	}
 
 	public Object delete(String id, String repositoryKey, String queryString) {
@@ -110,12 +88,6 @@ public class VersatileBase {
 
 	public ResponseEntity checkUseApi(String repositoryKey, String id, String method, String json,
 			String authorization) {
-
-		// DB分けたので「JSON_SCHEMA」でもOK
-//		if (repositoryKey.toUpperCase().equals(ConstData.JSON_SCHEMA)) {
-//			return new ResponseEntity<>(ConstData.JSON_SCHEMA + " cannot be specified because it is a reserved word",
-//					new HttpHeaders(), HttpStatus.BAD_REQUEST);
-//		}
 
 		if (method.equals(HttpMethods.POST.toString()) && id.equals(ConstData.UNIQUE) == false) {
 			if (repositoryKey.equals("") == false)
@@ -168,8 +140,8 @@ public class VersatileBase {
 		return null;
 	}
 
-	public void clearRepositoryInfoCache() {
-		repositoryInfo.clearRepositoryInfoCache();
+	public void clearApiSettingCache() {
+		repositoryInfo.clearApiSettingCache();
 	}
 
 	public String[] getRepository() {

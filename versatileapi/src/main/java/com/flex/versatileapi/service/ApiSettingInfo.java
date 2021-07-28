@@ -90,7 +90,7 @@ public class ApiSettingInfo {
 		}
 	}
 
-	public void clearRepositoryInfoCache() {
+	public void clearApiSettingCache() {
 		repositoryInfoMap = new ConcurrentHashMap<String, ApiSettingModel>();
 	}
 	

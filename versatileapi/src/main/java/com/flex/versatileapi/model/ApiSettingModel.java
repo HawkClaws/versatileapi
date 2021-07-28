@@ -15,7 +15,7 @@ public class ApiSettingModel {
 	//ApiのURL
 	String apiUrl;
 	
-	//Repository認証用のシークレット
+	//Api認証用のシークレット
 	String apiSecret;
 	
 	//AuthGroupのキー（先にAuthGroupを登録する必要がある）

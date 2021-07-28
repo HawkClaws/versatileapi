@@ -29,6 +29,10 @@ public class VersatileController {
 	@Autowired
 	private UrlConverter urlConverter;
 
+	
+	/**
+	 * versatileApiの実行
+	 */
 //	@CrossOrigin()
 	@RequestMapping(value = "/api/**")
 	public ResponseEntity<Object> versatileApi(HttpServletRequest request)
@@ -43,5 +47,13 @@ public class VersatileController {
 		return versatileService.execute(info.getRepositoryKey(), info.getId(), method, body,
 				request.getHeader(ConstData.AUTHORIZATION), request.getRemoteAddr(), request.getQueryString(),
 				ConstData.DATA_STORE);
+	}
+	
+	
+	/**
+	 * authGroupにユーザーを追加（Api認証を使用）
+	 */
+	public ResponseEntity<Object> authGroupUser(HttpServletRequest request){
+		return null;
 	}
 }

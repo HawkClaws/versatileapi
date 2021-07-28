@@ -50,46 +50,46 @@ public class AdminController {
 
 	@Autowired
 	private VersatileBase versatileBase;
-	
+
 	@Autowired
 	private AuthenticationService authenticationService;
-	
+
 	@Autowired
 	ApiSettingInfo repositoryInfo;
 
 	private Gson gson = new Gson();
 
 	/**
-	 *  API定義のキーリストを返します
+	 * API定義のキーリストを返します
 	 */
 	@GetMapping(value = "/admin/apisettinglist")
 	public ResponseEntity<Object> getRepository(HttpServletRequest request) {
 		this.versatileBase.setRepositoryName(ConstData.API_SETTING_STORE);
 		// TODO 認証リファクタ
 		ResponseEntity resEnt = null;
-		resEnt = authorization(request.getHeader(ConstData.ADMIN_AUTHORIZATION));
+		resEnt = adminAuthorization(request.getHeader(ConstData.ADMIN_AUTHORIZATION));
 		if (resEnt != null)
 			return resEnt;
 
 		return new ResponseEntity<>(this.versatileBase.getRepository(), new HttpHeaders(), HttpStatus.OK);
 	}
-	
+
 	/**
-	 *  Api定義の登録・更新・取得・削除
+	 * Api定義の登録・更新・取得・削除
 	 */
 	@RequestMapping(value = "/admin/apisetting/**")
-	public ResponseEntity<Object> registerApiSetting(HttpServletRequest request) throws IOException, ODataParseException {
+	public ResponseEntity<Object> apiSetting(HttpServletRequest request) throws IOException, ODataParseException {
 		this.versatileBase.setRepositoryName(ConstData.API_SETTING_STORE);
 		RepositoryUrlInfo info = urlConverter.getRepositoryInfo2(request.getRequestURI());
-		
-		if(request.getMethod().equals(HttpMethods.GET)) {
-			return new ResponseEntity<>(this.versatileBase.get(info.getId(), ConstData.JSON_SCHEMA, ""), new HttpHeaders(), HttpStatus.OK);
-		}		
 
-		ResponseEntity resEnt = authorization(request.getHeader(ConstData.ADMIN_AUTHORIZATION));
+		if (request.getMethod().equals(HttpMethods.GET)) {
+			return new ResponseEntity<>(this.versatileBase.get(info.getId(), ConstData.JSON_SCHEMA, ""),
+					new HttpHeaders(), HttpStatus.OK);
+		}
+
+		ResponseEntity resEnt = adminAuthorization(request.getHeader(ConstData.ADMIN_AUTHORIZATION));
 		if (resEnt != null)
 			return resEnt;
-
 
 		Object response = null;
 
@@ -111,31 +111,42 @@ public class AdminController {
 				return new ResponseEntity<>(problems.toString(), new HttpHeaders(), HttpStatus.BAD_REQUEST);
 
 			try {
-				//Api定義作成
+				// Api定義作成
 				ApiSettingModel apiSetting = repositoryInfo.toApiSettingModel(body);
 				response = repositoryInfo.create(apiSetting);
-				
+
 			} catch (JsonValidatingException e) {
 				return new ResponseEntity<>(e.getMessage(), new HttpHeaders(), HttpStatus.BAD_REQUEST);
 			}
 
-			versatileBase.clearRepositoryInfoCache();
+			versatileBase.clearApiSettingCache();
 			break;
 		case HttpMethods.DELETE:
 			response = versatileBase.delete(info.getId(), ConstData.JSON_SCHEMA, "");
-			versatileBase.clearRepositoryInfoCache();
+			versatileBase.clearApiSettingCache();
 			break;
 		}
 
 		return new ResponseEntity<>(response, new HttpHeaders(), HttpStatus.OK);
 	}
-	
-//	@RequestMapping(value = "/admin/authgroup/**")
-//	public ResponseEntity<Object> registerAuthGroup(HttpServletRequest request){
-//		
-//	}
 
-	private ResponseEntity authorization(String authorization) {
+	/**
+	 * authGroupの登録・更新・取得・削除
+	 */
+	@RequestMapping(value = "/admin/authgroup/**")
+	public ResponseEntity<Object> authGroup(HttpServletRequest request) {
+		return null;
+	}
+	
+	/**
+	 * ユーザーの登録・更新・取得・削除
+	 */
+	@RequestMapping(value = "/admin/user/**")
+	public ResponseEntity<Object> user(HttpServletRequest request) {
+		return null;
+	}
+
+	private ResponseEntity adminAuthorization(String authorization) {
 		if (authorization == null || SystemConfig.getAdminAuthorization()
 				.equals(hashService.generateHashPassword(authorization)) == false) {
 			return new ResponseEntity<>("", new HttpHeaders(), HttpStatus.FORBIDDEN);

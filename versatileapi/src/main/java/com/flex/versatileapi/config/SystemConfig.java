@@ -12,13 +12,15 @@ public class SystemConfig {
 			@Value("${spring.datasource.useSchema}") boolean useSchema,
 			@Value("${spring.datasource.hashKey}") String hashKey,
 			@Value("${spring.datasource.adminAuthorization}") String adminAuthorization,
-			@Value("${spring.datasource.mongoConnectionString}") String mongoConnectionString) {
+			@Value("${spring.datasource.mongoConnectionString}") String mongoConnectionString,
+			@Value("${spring.datasource.rawAdminAuthorization}") String rawAdminAuthorization) {
 
 		SystemConfig.onlyDataSchemaRepository = onlyDataSchemaRepository;
 		SystemConfig.useSchema = useSchema;
 		SystemConfig.hashKey = hashKey;
 		SystemConfig.adminAuthorization = adminAuthorization;
 		SystemConfig.mongoConnectionString = mongoConnectionString;
+		SystemConfig.rawAdminAuthorization = rawAdminAuthorization;
 	}
 
 	@Getter
@@ -35,4 +37,7 @@ public class SystemConfig {
 
 	@Getter
 	static String mongoConnectionString;
+	
+	@Getter
+	static String rawAdminAuthorization;
 }

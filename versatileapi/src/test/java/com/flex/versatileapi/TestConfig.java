@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import com.flex.versatileapi.config.SystemConfig;
 import com.google.gson.Gson;
 
 public class TestConfig {
@@ -18,7 +19,7 @@ public class TestConfig {
 	
 	public static Map<String,String> AuthHeader() {
 		Map<String,String> header = new HashMap<String,String>();
-		header.put("Admin-Authorization", "Leonardo07");
+		header.put("Admin-Authorization", SystemConfig.getRawAdminAuthorization());
 		return header;
 	}
 	
