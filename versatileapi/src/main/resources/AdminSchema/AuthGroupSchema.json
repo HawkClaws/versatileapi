@@ -1,0 +1,18 @@
+{
+	"additionalProperties":false,
+	"type": "object",
+	"properties": {
+		"authGroupId": {
+			"description": "認証グループID",
+			"type": "string"
+		},
+		"authGroupSecret": {
+			"description": "認証グループシークレット",
+			"type": "string"
+		}
+	},
+	"required": [
+		"authGroupId",
+		"authGroupSecret"
+	]
+}

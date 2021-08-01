@@ -1,6 +1,6 @@
 package com.flex.versatileapi.exceptions;
 
-public class ODataParseException extends Exception {
+public class ODataParseException extends RuntimeException {
 	public ODataParseException(String message) {
 		super("ODataParseException:" + message);
 	}

@@ -1,0 +1,51 @@
+{
+    "additionalProperties": false,
+    "type": "object",
+    "properties": {
+      "apiUrl": {
+        "type": "string",
+        "description": "APIURL"        
+      },
+      "apiSecret": {
+        "type": "string",
+        "description": "API認証シークレット"
+      },
+      "authGroupId": {
+        "type": "string",
+        "description": "認証グループID"
+      },
+      "jsonSchema": {
+        "type": "object",
+        "description": "データバリデーション用JsonSchema"
+      },
+      "methodSettings": {
+        "type": "array",
+        "items": [
+          {
+            "type": "object",
+            "properties": {
+              "httpMethod": {
+                "type": "string",
+                "enum": ["GET","POST","PUT","DELETE"]
+              },
+              "behavior": {
+                "type": "string",
+                "enum": ["Allow","Authorization","NotImplemented","IptoId"]
+              }
+            },
+            "required": [
+              "httpMethod",
+              "behavior"
+            ]
+          }
+        ]
+      }
+    },
+    "required": [
+      "apiUrl",
+      "apiSecret",
+      "authGroupId",
+      "jsonSchema",
+      "methodSettings"
+    ]
+  }

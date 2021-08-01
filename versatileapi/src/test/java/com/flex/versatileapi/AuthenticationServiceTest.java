@@ -13,19 +13,19 @@ public class AuthenticationServiceTest {
 	@Autowired
 	private AuthenticationService authenticationService;
 
-	@Test
-	void createUserTest() throws ODataParseException {
-
-		String userId = "tanaka";
-		String password = "tanakanopassword";
-		String ipAddress = "192.168.0.1";
-		String authGroupKey ="authGroupKey";
-
-		authenticationService.createUser(userId, password, ipAddress);
-		authenticationService.addAuthGroup(authGroupKey, userId, ipAddress);
-		
-		boolean aaa =authenticationService.isAllowedAuth(userId, password, authGroupKey);
-		int i=0;
-
-	}
+//	@Test
+//	void createUserTest() throws ODataParseException {
+//
+//		String userId = "tanaka";
+//		String password = "tanakanopassword";
+//		String ipAddress = "192.168.0.1";
+//		String authGroupKey ="authGroupKey";
+//
+//		authenticationService.createUser(userId, password, ipAddress);
+//		authenticationService.addAuthGroup(authGroupKey, userId, ipAddress);
+//		
+//		boolean aaa =authenticationService.isAllowedAuth(userId, password, authGroupKey);
+//		int i=0;
+//
+//	}
 }

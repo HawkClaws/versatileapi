@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import com.flex.versatileapi.config.ConstData;
+import com.flex.versatileapi.config.DBName;
 import com.flex.versatileapi.exceptions.ODataParseException;
 import com.google.api.client.http.HttpMethods;
 import com.google.firebase.internal.Objects;
@@ -28,13 +29,13 @@ public class VersatileService {
 	private HashService hashService;
 
 	public ResponseEntity<Object> execute(String repositoryKey, String id, String method, String body,
-			String authorization, String ipAddress, String queryString, String targetRepository)
+			String authorization, String ipAddress, String queryString, DBName targetdb)
 			throws IOException, InterruptedException, ExecutionException {
 
 		ResponseEntity responseEntity = null;
 
 		// JsonSchemaバリデーション・認証・許可されているメソッドをチェック
-		this.versatileBase.setRepositoryName(ConstData.API_SETTING_STORE);
+		this.versatileBase.setRepositoryName(DBName.API_SETTING_STORE);
 		responseEntity = versatileBase.checkUseApi(repositoryKey, id, method, body, authorization);
 
 		if (responseEntity != null)
@@ -42,7 +43,7 @@ public class VersatileService {
 
 		Object response = null;
 		// 各メソッドの処理を実行
-		this.versatileBase.setRepositoryName(targetRepository);
+		this.versatileBase.setRepositoryName(targetdb);
 		switch (method) {
 		case HttpMethods.GET:
 			try {

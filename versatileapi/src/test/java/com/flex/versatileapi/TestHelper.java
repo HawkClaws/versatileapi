@@ -39,6 +39,10 @@ public class TestHelper {
 		map.remove(ConstData.UPD_DATE);
 	}
 
+	public static String get(String url, Map<String, String> additionalHeaders) {
+		return commonHelper(url, "", HttpMethod.GET, additionalHeaders);
+	}
+
 	public static String post(String url, String json) {
 
 		json = json.replace("'", "\"");
@@ -60,7 +64,17 @@ public class TestHelper {
 		return upsertHelper(url, json, HttpMethod.PUT, additionalHeaders);
 	}
 
-	private static String upsertHelper(String url, String json, HttpMethod httpMethod,
+	public static String delete(String url, String json) {
+		json = json.replace("'", "\"");
+		return upsertHelper(url, json, HttpMethod.DELETE, new HashMap<String, String>());
+	}
+
+	public static String delete(String url, String json, Map<String, String> additionalHeaders) {
+		json = json.replace("'", "\"");
+		return upsertHelper(url, json, HttpMethod.DELETE, additionalHeaders);
+	}
+
+	private static String commonHelper(String url, String json, HttpMethod httpMethod,
 			Map<String, String> additionalHeaders) {
 
 		HttpHeaders headers = new HttpHeaders();
@@ -73,9 +87,15 @@ public class TestHelper {
 		HttpEntity<String> entity = new HttpEntity<String>(json, headers);
 
 		ResponseEntity<String> response = restTemplate.exchange(url, httpMethod, entity, String.class);
-		String body = response.getBody();
+		return response.getBody();
+	}
 
-		if (body.equals(""))
+	private static String upsertHelper(String url, String json, HttpMethod httpMethod,
+			Map<String, String> additionalHeaders) {
+
+		String body = commonHelper(url, json, httpMethod, additionalHeaders);
+
+		if (body == null || body.equals(""))
 			return null;
 		return gson.fromJson(body, Map.class).get("id").toString();
 	}

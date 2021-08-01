@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.flex.versatileapi.config.ConstData;
+import com.flex.versatileapi.config.DBName;
 import com.flex.versatileapi.model.RepositoryUrlInfo;
 import com.flex.versatileapi.service.Logging;
 import com.flex.versatileapi.service.UrlConverter;
@@ -46,13 +47,14 @@ public class VersatileController {
 
 		return versatileService.execute(info.getRepositoryKey(), info.getId(), method, body,
 				request.getHeader(ConstData.AUTHORIZATION), request.getRemoteAddr(), request.getQueryString(),
-				ConstData.DATA_STORE);
+				DBName.DATA_STORE);
 	}
 	
 	
 	/**
 	 * authGroupにユーザーを追加（Api認証を使用）
 	 */
+	@RequestMapping(value = "/auth_group_user/**")
 	public ResponseEntity<Object> authGroupUser(HttpServletRequest request){
 		return null;
 	}

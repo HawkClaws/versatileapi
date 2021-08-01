@@ -1,0 +1,37 @@
+{
+	"apiSecret": "",
+	"apiUrl":"",
+	"jsonSchema": {
+        "additionalProperties":false,
+		"type": "object",
+		"properties": {
+			"user_id": {
+                "description": "ユーザーID",
+				"type": "string",
+				"minLength": 3,
+				"maxLength": 16
+			}
+		},
+		"required": [
+			"user_id"
+		]
+	},
+	"methodSettings": [
+		{
+			"httpMethod": "GET",
+			"behavior": "Authorization"
+		},
+		{
+			"httpMethod": "POST",
+			"behavior": "Authorization"
+		},
+		{
+			"httpMethod": "PUT",
+			"behavior": "Authorization"
+		},
+		{
+			"httpMethod": "DELETE",
+			"behavior": "Authorization"
+		}
+	]
+}

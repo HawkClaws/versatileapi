@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import com.flex.versatileapi.config.ConstData;
+import com.flex.versatileapi.config.DBName;
 import com.flex.versatileapi.config.SystemConfig;
 import com.flex.versatileapi.exceptions.ODataParseException;
 import com.flex.versatileapi.model.ApiSettingModel;
@@ -30,8 +31,9 @@ public class VersatileBase {
 //	RealtimeDatabaseRepotitory repository;
 	private IRepository repository = null;
 
-	public void setRepositoryName(String repositoryName) {
-		this.repository = new MongoRepository(repositoryName);
+	//DB切り替え。　TODO：良くない作りなのでいい感じに直したい
+	public void setRepositoryName(DBName dbName) {
+		this.repository = new MongoRepository(dbName.getString());
 	}
 
 	@Autowired
@@ -41,7 +43,7 @@ public class VersatileBase {
 	private RepositoryValidator repositoryValidator;
 	
 	@Autowired
-	private ApiSettingInfo repositoryInfo;
+	private ApiSettingInfo apiSettingInfo;
 
 	private final static String ALL = "all";
 	private final static String COUNT = "count";
@@ -103,7 +105,7 @@ public class VersatileBase {
 		if (SystemConfig.isOnlyDataSchemaRepository()) {
 			try {
 //				ApiSettingInfo repositoryInfo = new ApiSettingInfo(hashService, repositoryValidator, this);
-				info = repositoryInfo.getApiSetting(repositoryKey, this);
+				info = apiSettingInfo.get(repositoryKey, this);
 				if (info == null)
 					return new ResponseEntity<>("", new HttpHeaders(), HttpStatus.NOT_IMPLEMENTED);
 			} catch (Exception ex) {
@@ -141,7 +143,7 @@ public class VersatileBase {
 	}
 
 	public void clearApiSettingCache() {
-		repositoryInfo.clearApiSettingCache();
+		apiSettingInfo.clearCache();
 	}
 
 	public String[] getRepository() {

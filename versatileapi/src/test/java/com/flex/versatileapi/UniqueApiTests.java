@@ -56,6 +56,7 @@ public class UniqueApiTests {
 				+ "		}\r\n"
 				+ "	]\r\n"
 				+  ",\"apiUrl\":\"%s\""
+				+ ",\"authGroupId\":\"\""
 				+ "}",repository);
 		
 		

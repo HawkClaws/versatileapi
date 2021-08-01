@@ -40,24 +40,20 @@ public class ApiSettingInfo {
 	@Autowired
 	private RepositoryValidator repositoryValidator;
 
-	@Autowired
-	private VersatileBase versatileBase;
+	//キャッシュ用　TODO上限？
+	protected static ConcurrentHashMap<String, ApiSettingModel> apiSettingMap = new ConcurrentHashMap<String, ApiSettingModel>();
 
-	protected static ConcurrentHashMap<String, ApiSettingModel> repositoryInfoMap = new ConcurrentHashMap<String, ApiSettingModel>();
-
-//	public ApiSettingInfo(HashService hashService, RepositoryValidator repositoryValidator,
-//			VersatileBase versatileBase) {
-//		this.hashService = hashService;
-//		this.repositoryValidator = repositoryValidator;
-//		this.versatileBase = versatileBase;
-//	}
-
+	private JsonSchema apiSettingSchema;
+	
+	public ApiSettingInfo() {
+		this.apiSettingSchema = JsonSchemaEx.readJsonSchema("AdminSchema/ApiSettingSchema.json");
+	}
+	
 	public List<Problem> validate(String body) {
-
-		return repositoryValidator.validateJson(body, jvs.readSchema(new StringReader(repositorySchema)));
+		return repositoryValidator.validateJson(body, this.apiSettingSchema);
 	}
 
-	public ApiSettingModel toApiSettingModel(String apiSettingStr) {
+	public ApiSettingModel toModel(String apiSettingStr) {
 		ApiSettingModel repoMpdel = gson.fromJson(apiSettingStr.replace("$", ""), ApiSettingModel.class);
 
 		JsonSchema js = jvs.readSchema(new StringReader(gson.toJson(repoMpdel.getJsonSchema())));
@@ -68,14 +64,9 @@ public class ApiSettingInfo {
 		return repoMpdel;
 	}
 
-	public Object create(ApiSettingModel apiSetting) {
-
-		return versatileBase.post(apiSetting.getApiUrl(), ConstData.JSON_SCHEMA, "", gson.toJson(apiSetting), "");
-	}
-
-	public ApiSettingModel getApiSetting(String repositoryKey, VersatileBase versatileBase) throws ODataParseException {
-		if (repositoryInfoMap.containsKey(repositoryKey)) {
-			return repositoryInfoMap.get(repositoryKey);
+	public ApiSettingModel get(String repositoryKey, VersatileBase versatileBase) throws ODataParseException {
+		if (apiSettingMap.containsKey(repositoryKey)) {
+			return apiSettingMap.get(repositoryKey);
 		} else {
 			Object repositoryInfo = versatileBase.get(repositoryKey, ConstData.JSON_SCHEMA, "");
 			if (repositoryInfo == null)
@@ -85,56 +76,12 @@ public class ApiSettingInfo {
 
 			info.setSchema(jvs.readSchema(new StringReader(gson.toJson(info.getJsonSchema()))));
 
-			repositoryInfoMap.put(repositoryKey, info);
+			apiSettingMap.put(repositoryKey, info);
 			return info;
 		}
 	}
 
-	public void clearApiSettingCache() {
-		repositoryInfoMap = new ConcurrentHashMap<String, ApiSettingModel>();
+	public void clearCache() {
+		apiSettingMap = new ConcurrentHashMap<String, ApiSettingModel>();
 	}
-	
-	private final String repositorySchema ="{\r\n"
-			+ "  \"additionalProperties\": false,\r\n"
-			+ "  \"type\": \"object\",\r\n"
-			+ "  \"properties\": {\r\n"
-			+ "    \"apiUrl\": {\r\n"
-			+ "      \"type\": \"string\"\r\n"
-			+ "    },\r\n"
-			+ "    \"apiSecret\": {\r\n"
-			+ "      \"type\": \"string\"\r\n"
-			+ "    },\r\n"
-			+ "    \"jsonSchema\": {\r\n"
-			+ "      \"type\": \"object\"\r\n"
-			+ "    },\r\n"
-			+ "    \"methodSettings\": {\r\n"
-			+ "      \"type\": \"array\",\r\n"
-			+ "      \"items\": [\r\n"
-			+ "        {\r\n"
-			+ "          \"type\": \"object\",\r\n"
-			+ "          \"properties\": {\r\n"
-			+ "            \"httpMethod\": {\r\n"
-			+ "              \"type\": \"string\",\r\n"
-			+ "              \"enum\": [\"GET\",\"POST\",\"PUT\",\"DELETE\"]\r\n"
-			+ "            },\r\n"
-			+ "            \"behavior\": {\r\n"
-			+ "              \"type\": \"string\",\r\n"
-			+ "              \"enum\": [\"Allow\",\"Authorization\",\"NotImplemented\",\"IptoId\"]\r\n"
-			+ "            }\r\n"
-			+ "          },\r\n"
-			+ "          \"required\": [\r\n"
-			+ "            \"httpMethod\",\r\n"
-			+ "            \"behavior\"\r\n"
-			+ "          ]\r\n"
-			+ "        }\r\n"
-			+ "      ]\r\n"
-			+ "    }\r\n"
-			+ "  },\r\n"
-			+ "  \"required\": [\r\n"
-			+ "    \"apiUrl\",\r\n"
-			+ "    \"apiSecret\",\r\n"
-			+ "    \"jsonSchema\",\r\n"
-			+ "    \"methodSettings\"\r\n"
-			+ "  ]\r\n"
-			+ "}";
 }

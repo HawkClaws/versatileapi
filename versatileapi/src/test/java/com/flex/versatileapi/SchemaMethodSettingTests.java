@@ -61,6 +61,7 @@ class SchemaMethodSettingTests {
 				+ "			\"behavior\": \"NotImplemented\"\r\n"
 				+ "		}\r\n"
 				+ "	]\r\n"
+				+ ",\"authGroupId\":\"\""
 				+  ",\"apiUrl\":\"%s\""
 				+ "}",repository);
 		

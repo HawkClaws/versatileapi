@@ -22,7 +22,7 @@ class VersatileApiTests {
 		String repository = "test/repository";// なんでもOK!なのがこのシステムの魅力！
 		String baseUrl = TestConfig.ApiUrl() + repository;
 		
-		String schema = String.format("{  'jsonSchema':{'$schema': 'http://json-schema.org/draft-04/schema#',  'additionalProperties': false, 'type': 'object',  'properties': {    'category': {      'type': 'string'    },    'name': {      'type': 'string'    },    'value': {      'type': 'string'    },    'detail': {      'type': 'object',      'properties': {        'weight': {          'type': 'string'        },        'description': {          'type': 'string'        }      },      'required': [        'weight',        'description'      ]    }  }},'apiSecret':'','methodSettings':[],'apiUrl':'%s'}",repository);
+		String schema = String.format("{  'authGroupId':'','jsonSchema':{'$schema': 'http://json-schema.org/draft-04/schema#',  'additionalProperties': false, 'type': 'object',  'properties': {    'category': {      'type': 'string'    },    'name': {      'type': 'string'    },    'value': {      'type': 'string'    },    'detail': {      'type': 'object',      'properties': {        'weight': {          'type': 'string'        },        'description': {          'type': 'string'        }      },      'required': [        'weight',        'description'      ]    }  }},'apiSecret':'','methodSettings':[],'apiUrl':'%s'}",repository);
 		schema = schema.replace("'", "\"");
 
 
@@ -72,7 +72,7 @@ class VersatileApiTests {
 		String repository = "repositoryEx";
 		String baseUrl = TestConfig.ApiUrl() + repository;
 
-		String schema = String.format("{  'jsonSchema':{'$schema': 'http://json-schema.org/draft-04/schema#', 'additionalProperties': true,  'type': 'object',  'properties': {    'category': {      'type': 'string'    },    'name': {      'type': 'string'    },    'value': {      'type': 'string'    },    'detail': {      'type': 'object',      'properties': {        'weight': {          'type': 'string'        },        'description': {          'type': 'string'        }      },      'required': [        'weight',        'description'      ]    }  }},'apiSecret':'','methodSettings':[],'apiUrl':'%s'}",repository);
+		String schema = String.format("{  'authGroupId':'','jsonSchema':{'$schema': 'http://json-schema.org/draft-04/schema#', 'additionalProperties': true,  'type': 'object',  'properties': {    'category': {      'type': 'string'    },    'name': {      'type': 'string'    },    'value': {      'type': 'string'    },    'detail': {      'type': 'object',      'properties': {        'weight': {          'type': 'string'        },        'description': {          'type': 'string'        }      },      'required': [        'weight',        'description'      ]    }  }},'apiSecret':'','methodSettings':[],'apiUrl':'%s'}",repository);
 		schema = schema.replace("'", "\"");
 
 
