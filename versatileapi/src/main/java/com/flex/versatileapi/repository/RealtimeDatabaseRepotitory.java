@@ -203,4 +203,11 @@ public class RealtimeDatabaseRepotitory implements IRepository {
 		return null;
 	}
 
+
+	@Override
+	public void createIndex(String repositoryKey) {
+		// TODO 自動生成されたメソッド・スタブ
+		
+	}
+
 }

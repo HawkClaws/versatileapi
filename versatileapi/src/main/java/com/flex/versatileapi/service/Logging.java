@@ -26,9 +26,11 @@ public class Logging {
 			String ip = request.getRemoteAddr();
 
 			// テストはログ出力しない
-			if (ip.equals("127.0.0.1"))
+			if (ip.equals("127.0.0.1") || ip.equals("0:0:0:0:0:0:0:1")) {
+				System.out.println("non-writeLog");
 				return;
-
+			}
+				
 			Date d = new Date();
 			SimpleDateFormat d1 = new SimpleDateFormat("yyyy-MM-dd");
 			String c1 = d1.format(d);

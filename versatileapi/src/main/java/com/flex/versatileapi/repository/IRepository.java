@@ -10,6 +10,8 @@ public interface IRepository {
 	public Map<String, String> insert(String repositoryKey, String id, Map<String, Object> value);
 
 	public Map<String, String> update(String repositoryKey, String id, Map<String, Object> value);
+	
+	public void createIndex(String repositoryKey);
 
 	public Object get(String repositoryKey, String id);
 

@@ -10,12 +10,14 @@ import org.bson.Document;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.util.NumberUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flex.versatileapi.config.SystemConfig;
 import com.flex.versatileapi.model.QueryModel;
 import com.flex.versatileapi.service.CollectionEx;
 import com.flex.versatileapi.service.ODataMongoConverter;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
+import com.mongodb.MongoCommandException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
@@ -33,7 +35,7 @@ public class MongoRepository implements IRepository {
 
 	private ODataMongoConverter oDataMongoConverter = new ODataMongoConverter();
 
-	private MongoDatabase db = null;	
+	private MongoDatabase db = null;
 
 	public MongoRepository(String dbName) {
 //		ConnectionString connectionString = new ConnectionString(SystemConfig.getMongoConnectionString());
@@ -96,7 +98,31 @@ public class MongoRepository implements IRepository {
 
 		Map<String, String> res = new HashMap<String, String>();
 		res.put("id", id);
+
 		return res;
+	}
+	
+
+	@Override
+	public void createIndex(String repositoryKey) {
+		try {
+			db.createCollection(repositoryKey);
+		}catch(MongoCommandException me){
+		}
+		
+		MongoCollection<Document> docs = db.getCollection(repositoryKey);
+		
+		// Indexを張る
+		boolean existsIndex = false;
+		for (Document doc : docs.listIndexes()) {
+			Map<String,Object> data = new ObjectMapper().convertValue(doc.get("key"), Map.class);
+			if(data.containsKey("$**")) {
+				existsIndex = true;
+			}
+		}
+		if (existsIndex == false) {
+			docs.createIndex(new Document("$**", 1));
+		}
 	}
 
 	@Override
@@ -208,5 +234,4 @@ public class MongoRepository implements IRepository {
 
 		return results;
 	}
-
 }

@@ -88,6 +88,10 @@ public class VersatileBase {
 		}
 	}
 
+	public void createIndex(String repositoryKey) {
+		repository.createIndex(repositoryKey);
+	}
+	
 	public ResponseEntity checkUseApi(String repositoryKey, String id, String method, String json,
 			String authorization) {
 
