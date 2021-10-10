@@ -14,7 +14,7 @@ import org.springframework.web.client.RestTemplate;
 import com.flex.versatileapi.config.ConstData;
 import com.google.gson.Gson;
 
-public class TestHelper {
+public class Test_Helper {
 	private static RestTemplate restTemplate = new RestTemplate();
 	private static Gson gson = new Gson();
 

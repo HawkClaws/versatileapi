@@ -24,7 +24,7 @@ import com.flex.versatileapi.service.HashService;
 import com.flex.versatileapi.service.RepositoryValidator;
 
 @SpringBootTest
-public class JsonValidateTest {
+public class Test_JsonValidate {
 	@Autowired
 	RepositoryValidator repositoryValidator;
 	protected JsonValidationService jvs = JsonValidationService.newInstance();

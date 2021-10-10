@@ -8,7 +8,7 @@ import com.flex.versatileapi.exceptions.ODataParseException;
 import com.flex.versatileapi.service.AuthenticationService;
 
 @SpringBootTest
-public class AuthenticationServiceTest {
+public class Test_AuthenticationService {
 
 	@Autowired
 	private AuthenticationService authenticationService;

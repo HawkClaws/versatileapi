@@ -7,7 +7,7 @@ import java.util.Objects;
 import com.flex.versatileapi.config.SystemConfig;
 import com.google.gson.Gson;
 
-public class TestConfig {
+public class Test_Config {
 	private static Gson gson = new Gson();
 	
 	public static String BASE_URL = "http://localhost:8080/";

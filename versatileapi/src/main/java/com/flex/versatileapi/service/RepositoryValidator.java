@@ -55,8 +55,8 @@ public class RepositoryValidator {
 			break;
 
 		case IptoId:
-			if (id.equals(ConstData.UNIQUE) == false) {
-				return new ResponseEntity<>("only call " + ConstData.UNIQUE, new HttpHeaders(), HttpStatus.BAD_REQUEST);
+			if (id.equals(ConstData.ID_UNIQUE) == false) {
+				return new ResponseEntity<>("only call " + ConstData.ID_UNIQUE, new HttpHeaders(), HttpStatus.BAD_REQUEST);
 			}
 			break;
 		}

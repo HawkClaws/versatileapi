@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import com.flex.versatileapi.config.ConstData;
 import com.flex.versatileapi.exceptions.ODataParseException;
+import com.flex.versatileapi.extend.GsonEx;
 import com.flex.versatileapi.model.ApiSettingModel;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -23,14 +24,6 @@ import com.google.gson.JsonSerializer;
 
 @Component
 public class ApiSettingInfo {
-
-	Gson gson = new GsonBuilder().registerTypeAdapter(Double.class, new JsonSerializer<Double>() {
-		@Override
-		public JsonElement serialize(Double src, Type typeOfSrc, JsonSerializationContext context) {
-			Integer value = (int) Math.round(src);
-			return new JsonPrimitive(value);
-		}
-	}).create();
 
 	private JsonValidationService jvs = JsonValidationService.newInstance();
 
@@ -45,6 +38,9 @@ public class ApiSettingInfo {
 
 	private JsonSchema apiSettingSchema;
 	
+	@Autowired
+	private GsonEx gsonEx;
+	
 	public ApiSettingInfo() {
 		this.apiSettingSchema = JsonSchemaEx.readJsonSchema("AdminSchema/ApiSettingSchema.json");
 	}
@@ -54,9 +50,9 @@ public class ApiSettingInfo {
 	}
 
 	public ApiSettingModel toModel(String apiSettingStr) {
-		ApiSettingModel repoMpdel = gson.fromJson(apiSettingStr.replace("$", ""), ApiSettingModel.class);
+		ApiSettingModel repoMpdel = gsonEx.g.fromJson(apiSettingStr.replace("$", ""), ApiSettingModel.class);
 
-		JsonSchema js = jvs.readSchema(new StringReader(gson.toJson(repoMpdel.getJsonSchema())));
+		JsonSchema js = jvs.readSchema(new StringReader(gsonEx.g.toJson(repoMpdel.getJsonSchema())));
 
 		// APIシークレットハッシュ化
 		repoMpdel.setApiSecret(hashService.generateHashPassword(repoMpdel.getApiSecret()));
@@ -72,9 +68,9 @@ public class ApiSettingInfo {
 			if (repositoryInfo == null)
 				return null;
 
-			ApiSettingModel info = gson.fromJson(gson.toJson(repositoryInfo), ApiSettingModel.class);
+			ApiSettingModel info = gsonEx.g.fromJson(gsonEx.g.toJson(repositoryInfo), ApiSettingModel.class);
 
-			info.setSchema(jvs.readSchema(new StringReader(gson.toJson(info.getJsonSchema()))));
+			info.setSchema(jvs.readSchema(new StringReader(gsonEx.g.toJson(info.getJsonSchema()))));
 
 			apiSettingMap.put(repositoryKey, info);
 			return info;

@@ -1,4 +1,4 @@
-package com.flex.versatileapi.service;
+package com.flex.versatileapi.extend;
 
 import java.util.ArrayList;
 import java.util.Collection;

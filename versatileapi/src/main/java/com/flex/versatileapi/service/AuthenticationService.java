@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import com.flex.versatileapi.config.ConstData;
 import com.flex.versatileapi.config.DBName;
 import com.flex.versatileapi.exceptions.ODataParseException;
+import com.flex.versatileapi.extend.GsonEx;
 import com.flex.versatileapi.model.MethodSetting;
 import com.flex.versatileapi.model.User;
 import com.google.gson.Gson;
@@ -35,7 +36,8 @@ public class AuthenticationService {
 	
 	private JsonValidationService jvs = JsonValidationService.newInstance();
 
-	private Gson gson = new Gson();
+	@Autowired
+	private GsonEx gsonEx;
 	
 	private JsonSchema userSchema;
 	private JsonSchema updateUserSchema;
@@ -100,7 +102,7 @@ public class AuthenticationService {
 		authGroupUser.put("user_id", userId);
 
 		this.versatileBase.post(userId, authGroupKey, "",
-				gson.toJson(authGroupUser), hashService.shortGenerateHashPassword(ipAddress));
+				gsonEx.g.toJson(authGroupUser), hashService.shortGenerateHashPassword(ipAddress));
 		return authGroupUser;
 	}
 	
@@ -114,7 +116,7 @@ public class AuthenticationService {
 		authGroupUser.put("user_id", userId);
 
 		this.versatileBase.post(userId, authGroupKey, "",
-				gson.toJson(authGroupUser), hashService.shortGenerateHashPassword(ipAddress));
+				gsonEx.g.toJson(authGroupUser), hashService.shortGenerateHashPassword(ipAddress));
 		return "";
 	}
 
@@ -125,7 +127,7 @@ public class AuthenticationService {
 		if (userObj == null)
 			return false;
 
-		User user = gson.fromJson(gson.toJson(userObj), User.class);
+		User user = gsonEx.g.fromJson(gsonEx.g.toJson(userObj), User.class);
 		return user.getPassword().equals(hashService.generateHashPassword(rawPassword));
 	}
 

@@ -2,12 +2,15 @@ package com.flex.versatileapi.service;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.json.stream.JsonParsingException;
 
+import org.leadpony.justify.api.JsonSchema;
 import org.leadpony.justify.api.Problem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -19,6 +22,7 @@ import com.flex.versatileapi.config.ConstData;
 import com.flex.versatileapi.config.DBName;
 import com.flex.versatileapi.config.SystemConfig;
 import com.flex.versatileapi.exceptions.ODataParseException;
+import com.flex.versatileapi.extend.GsonEx;
 import com.flex.versatileapi.model.ApiSettingModel;
 import com.flex.versatileapi.repository.IRepository;
 import com.flex.versatileapi.repository.MongoRepository;
@@ -31,7 +35,7 @@ public class VersatileBase {
 //	RealtimeDatabaseRepotitory repository;
 	private IRepository repository = null;
 
-	//DB切り替え。　TODO：良くない作りなのでいい感じに直したい
+	// DB切り替え。 TODO：良くない作りなのでいい感じに直したい
 	public void setRepositoryName(DBName dbName) {
 		this.repository = new MongoRepository(dbName.getString());
 	}
@@ -41,20 +45,17 @@ public class VersatileBase {
 
 	@Autowired
 	private RepositoryValidator repositoryValidator;
-	
+
 	@Autowired
 	private ApiSettingInfo apiSettingInfo;
 
-	private final static String ALL = "all";
-	private final static String COUNT = "count";
-	
-	
-	private Gson gson = new Gson();
+	@Autowired
+	private GsonEx gsonEx;
 
 	public Object get(String id, String repositoryKey, String queryString) throws ODataParseException {
-		if (ALL.equals(id)) {
+		if (ConstData.ID_ALL.equals(id)) {
 			return repository.getAll(repositoryKey, oDataParser.parse(queryString));
-		} else if (COUNT.equals(id)) {
+		} else if (ConstData.ID_COUNT.equals(id)) {
 			return repository.getCount(repositoryKey);
 		} else {
 			return repository.get(repositoryKey, id);
@@ -62,26 +63,38 @@ public class VersatileBase {
 	}
 
 	public Object post(String id, String repositoryKey, String queryString, String body, String userId) {
-		Map<String, Object> value = gson.fromJson(body, Map.class);
-
 		Timestamp now = new Timestamp(System.currentTimeMillis());
+		if (ConstData.ID_ALL.equals(id)) {
+			Map<String, Map<String, Object>> idValues = new HashMap<String, Map<String, Object>>();
+			for (Map<String, Object> jsonData : gsonEx.toMapList(body)) {
+				jsonData = addInsertBaseData(jsonData, userId, now);
+				idValues.put(UUID.randomUUID().toString(), jsonData);
+			}
+			return repository.insertAll(repositoryKey, idValues);
+		} else {
+			Map<String, Object> value = gsonEx.toMap(body);
+			value = addInsertBaseData(value, userId, now);
+			return repository.insert(repositoryKey, id, value);
+		}
+
+	}
+
+	private Map<String, Object> addInsertBaseData(Map<String, Object> value, String userId, Timestamp now) {
 		value.put(ConstData.REG_DATE, now);
 		value.put(ConstData.UPD_DATE, now);
-
 		value.put(ConstData.UNIQUE_ID, userId);
-
-		return repository.insert(repositoryKey, id, value);
+		return value;
 	}
 
 	public Object put(String id, String repositoryKey, String queryString, String body, String userId) {
-		Map<String, Object> value = gson.fromJson(body, Map.class);
+		Map<String, Object> value = gsonEx.toMap(body);
 		value.put(ConstData.UPD_DATE, new Timestamp(System.currentTimeMillis()));
-		
+
 		return repository.update(repositoryKey, id, value);
 	}
 
 	public Object delete(String id, String repositoryKey, String queryString) {
-		if (ALL.equals(id)) {
+		if (ConstData.ID_ALL.equals(id)) {
 			return repository.deleteAll(repositoryKey);
 		} else {
 			return repository.delete(repositoryKey, id);
@@ -91,11 +104,11 @@ public class VersatileBase {
 	public void createIndex(String repositoryKey) {
 		repository.createIndex(repositoryKey);
 	}
-	
+
 	public ResponseEntity checkUseApi(String repositoryKey, String id, String method, String json,
 			String authorization) {
 
-		if (method.equals(HttpMethods.POST.toString()) && id.equals(ConstData.UNIQUE) == false) {
+		if (method.equals(HttpMethods.POST.toString()) && id.equals(ConstData.ID_UNIQUE) == false &&id.equals(ConstData.ID_ALL) == false) {
 			if (repositoryKey.equals("") == false)
 				repositoryKey += "/";
 			repositoryKey += id;
@@ -117,9 +130,10 @@ public class VersatileBase {
 			}
 		}
 
+		ResponseEntity res = null;
 		if (info != null) {
 			// Can't find ApiDifin
-			ResponseEntity res = repositoryValidator.judgeUse(info, method, authorization, id);
+			res = repositoryValidator.judgeUse(info, method, authorization, id);
 			if (res != null)
 				return res;
 		}
@@ -127,22 +141,38 @@ public class VersatileBase {
 		if (method.equals(HttpMethods.POST) || method.equals(HttpMethods.PUT)) {
 
 			if (info != null) {
-				List<Problem> problems = new ArrayList<Problem>();
-
 				try {
-					problems = repositoryValidator.validateJson(json, info.getSchema());
-				} catch (JsonParsingException e) {
-					return new ResponseEntity<>(gson.toJson("JsonParseError:" + e.getMessage()), new HttpHeaders(),
-							HttpStatus.BAD_REQUEST);
-				}
+					if (id.equals(ConstData.ID_ALL)) {
 
-				if (problems.size() > 0) {
-					List<String> problemList = problems.stream().map(x -> x.getMessage()).collect(Collectors.toList());
-					return new ResponseEntity<>(gson.toJson(problemList), new HttpHeaders(), HttpStatus.BAD_REQUEST);
+						for (Map<String, Object> jsonData : gsonEx.toMapList(json)) {
+							res = validateJson(gsonEx.g.toJson(jsonData), info.getSchema());
+							if (res != null) {
+								break;
+							}
+						}
+
+					} else {
+						res = validateJson(json, info.getSchema());
+					}
+				} catch (JsonParsingException e) {
+					return new ResponseEntity<>(gsonEx.g.toJson("JsonParseError:" + e.getMessage()), new HttpHeaders(),
+							HttpStatus.BAD_REQUEST);
 				}
 			}
 		}
 
+		return res;
+	}
+
+	private ResponseEntity validateJson(String json, JsonSchema schema) {
+		List<Problem> problems = new ArrayList<Problem>();
+
+		problems = repositoryValidator.validateJson(json, schema);
+
+		if (problems.size() > 0) {
+			List<String> problemList = problems.stream().map(x -> x.getMessage()).collect(Collectors.toList());
+			return new ResponseEntity<>(gsonEx.g.toJson(problemList), new HttpHeaders(), HttpStatus.BAD_REQUEST);
+		}
 		return null;
 	}
 

@@ -62,8 +62,10 @@ public class VersatileService {
 			String postId = UUID.randomUUID().toString();
 			
 			// TODO UNIQUE(非推奨)
-			if (id.equals(ConstData.UNIQUE)) {
+			if (id.equals(ConstData.ID_UNIQUE)) {
 				postId = userId;
+			}else if (id.equals(ConstData.ID_ALL)) {
+				postId = id;
 			}else {
 				if (repositoryKey.equals("") == false)
 					repositoryKey += "/";
@@ -78,7 +80,7 @@ public class VersatileService {
 			String userId2 = hashService.shortGenerateHashPassword(ipAddress);
 			
 			// TODO UNIQUE(非推奨)
-			if (id.equals(ConstData.UNIQUE)) {
+			if (id.equals(ConstData.ID_UNIQUE)) {
 				id = userId2;
 			}
 

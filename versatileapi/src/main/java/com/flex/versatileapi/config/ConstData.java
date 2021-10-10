@@ -16,6 +16,8 @@ public class ConstData {
 	public final static String UPD_DATE = "_updated_at";
 	public final static String UNIQUE_ID = "_user_id";
 	
-	public final static String UNIQUE = "create_user";
+	public final static String ID_UNIQUE = "create_user";
+	public final static String ID_ALL = "all";
+	public final static String ID_COUNT = "count";
 	
 }

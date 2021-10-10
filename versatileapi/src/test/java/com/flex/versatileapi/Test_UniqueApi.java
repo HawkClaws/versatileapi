@@ -9,14 +9,14 @@ import org.springframework.web.client.RestTemplate;
 import com.flex.versatileapi.config.ConstData;
 import com.google.gson.Gson;
 
-public class UniqueApiTests {
+public class Test_UniqueApi {
 	private static Gson gson = new Gson();
 	private static RestTemplate restTemplate = new RestTemplate();
 	
 	@Test
 	void UniqueApi_正常() {
 		String repository = "UniqueApiTest";
-		String baseUrl = TestConfig.ApiUrl() + repository;
+		String baseUrl = Test_Config.ApiUrl() + repository;
 		
 		
 		String repositoryInfo = String.format("{\r\n"
@@ -61,7 +61,7 @@ public class UniqueApiTests {
 		
 		
 		//Repository情報登録
-		TestHelper.post(TestConfig.ApiSettingUrl(), repositoryInfo,TestConfig.AuthHeader());
+		Test_Helper.post(Test_Config.ApiSettingUrl(), repositoryInfo,Test_Config.AuthHeader());
 		
 		
 		// テスト前クリーン
@@ -71,27 +71,27 @@ public class UniqueApiTests {
 
 		int resStatusCode = 0;
 		try {
-			String id = TestHelper.post(baseUrl, requestJson);
+			String id = Test_Helper.post(baseUrl, requestJson);
 		} catch (RestClientResponseException exception) {
 			resStatusCode = exception.getRawStatusCode();
 		}
 		assertTrue(resStatusCode == 400);
 		
 		//登録
-		String id = TestHelper.post(baseUrl + "/" + ConstData.UNIQUE, requestJson);
-		String id2 = TestHelper.post(baseUrl + "/" + ConstData.UNIQUE, requestJson);
+		String id = Test_Helper.post(baseUrl + "/" + ConstData.ID_UNIQUE, requestJson);
+		String id2 = Test_Helper.post(baseUrl + "/" + ConstData.ID_UNIQUE, requestJson);
 		assertTrue(id.equals(id2));
 		
 		//取得
 		String responseJson1  = restTemplate.getForObject(baseUrl + "/" + id, String.class);
 		
 		//更新
-		String id3 = TestHelper.put(baseUrl + "/" + ConstData.UNIQUE, requestJson);
+		String id3 = Test_Helper.put(baseUrl + "/" + ConstData.ID_UNIQUE, requestJson);
 		assertTrue(id.equals(id3));
 		 
 		//取得
 		String responseJson2  = restTemplate.getForObject(baseUrl + "/" + id, String.class);
 		
-		assertTrue(TestHelper.jsonEquals(responseJson1, responseJson2));
+		assertTrue(Test_Helper.jsonEquals(responseJson1, responseJson2));
 	}
 }

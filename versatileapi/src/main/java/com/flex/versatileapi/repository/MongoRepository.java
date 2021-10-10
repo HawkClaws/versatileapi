@@ -5,15 +5,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
+import org.bson.BsonArray;
+import org.bson.BsonValue;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.util.NumberUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flex.versatileapi.config.SystemConfig;
+import com.flex.versatileapi.extend.CollectionEx;
 import com.flex.versatileapi.model.QueryModel;
-import com.flex.versatileapi.service.CollectionEx;
 import com.flex.versatileapi.service.ODataMongoConverter;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
@@ -101,22 +104,46 @@ public class MongoRepository implements IRepository {
 
 		return res;
 	}
-	
+
+	@Override
+	public Map<String, List<String>> insertAll(String repositoryKey, Map<String, Map<String, Object>> idValues) {
+		MongoCollection<Document> docs = db.getCollection(repositoryKey);
+		
+		//idを付与
+		for(String key : idValues.keySet()) {
+			Map<String, Object> temp = idValues.get(key);
+			temp.put("id", key);
+		}
+		
+		List<Document> documents = idValues.values().stream().map(x -> new Document(x)).collect(Collectors.toList());
+		docs.insertMany(documents);
+		
+		Map<String, List<String>> res = new HashMap<String, List<String>>();
+		res.put("ids", idValues.keySet().stream().map(x -> x).collect(Collectors.toList()));
+
+		return res;
+	}
+
+	@Override
+	public Map<String, String> updateAll(String repositoryKey, Map<String, Map<String, Object>> idValues) {
+		// TODO 自動生成されたメソッド・スタブ
+		return null;
+	}
 
 	@Override
 	public void createIndex(String repositoryKey) {
 		try {
 			db.createCollection(repositoryKey);
-		}catch(MongoCommandException me){
+		} catch (MongoCommandException me) {
 		}
-		
+
 		MongoCollection<Document> docs = db.getCollection(repositoryKey);
-		
+
 		// Indexを張る
 		boolean existsIndex = false;
 		for (Document doc : docs.listIndexes()) {
-			Map<String,Object> data = new ObjectMapper().convertValue(doc.get("key"), Map.class);
-			if(data.containsKey("$**")) {
+			Map<String, Object> data = new ObjectMapper().convertValue(doc.get("key"), Map.class);
+			if (data.containsKey("$**")) {
 				existsIndex = true;
 			}
 		}
@@ -234,4 +261,5 @@ public class MongoRepository implements IRepository {
 
 		return results;
 	}
+
 }

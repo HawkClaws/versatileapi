@@ -25,6 +25,7 @@ import com.flex.versatileapi.config.ConstData;
 import com.flex.versatileapi.config.DBName;
 import com.flex.versatileapi.config.SystemConfig;
 import com.flex.versatileapi.exceptions.ODataParseException;
+import com.flex.versatileapi.extend.GsonEx;
 import com.flex.versatileapi.model.ApiSettingModel;
 import com.flex.versatileapi.model.RepositoryUrlInfo;
 import com.flex.versatileapi.model.User;
@@ -63,7 +64,8 @@ public class AdminController {
 	@Autowired
 	private ApiSettingInfo apiSettingInfo;
 
-	private Gson gson = new Gson();
+	@Autowired
+	private GsonEx gsonEx;
 
 	/**
 	 * API定義のキーリストを返します
@@ -120,7 +122,7 @@ public class AdminController {
 				// Api定義作成
 				ApiSettingModel apiSetting = apiSettingInfo.toModel(body);
 				response = this.versatileBaseSchema.post(apiSetting.getApiUrl(), ConstData.JSON_SCHEMA, "",
-						gson.toJson(apiSetting), "");
+						gsonEx.g.toJson(apiSetting), "");
 				
 				this.versatileBaseData.createIndex(apiSetting.getApiUrl());
 				
@@ -165,7 +167,7 @@ public class AdminController {
 		List<Problem> problems = new ArrayList<Problem>();
 		try {
 
-			User user = gson.fromJson(body, User.class);
+			User user = gsonEx.g.fromJson(body, User.class);
 
 			switch (request.getMethod()) {
 			case HttpMethods.POST:
@@ -180,7 +182,7 @@ public class AdminController {
 				// ユーザー作成
 				user = authService.toUser(user.getUser_id(), user.getPassword(), user.getEmail());
 
-				Object postRes = this.versatileBaseSchema.post(user.getUser_id(), ConstData.USER, "", gson.toJson(user),
+				Object postRes = this.versatileBaseSchema.post(user.getUser_id(), ConstData.USER, "", gsonEx.g.toJson(user),
 						hashService.shortGenerateHashPassword(request.getRemoteAddr()));
 				return new ResponseEntity<>(postRes, new HttpHeaders(), HttpStatus.CREATED);
 			case HttpMethods.PUT:
@@ -193,7 +195,7 @@ public class AdminController {
 
 				// ユーザー更新(IDは変えられないようにする？)
 				user = authService.toUser(user.getUser_id(), user.getNew_password(), user.getNew_email());
-				Object updRes = this.versatileBaseSchema.put(user.getUser_id(), ConstData.USER, "", gson.toJson(user),
+				Object updRes = this.versatileBaseSchema.put(user.getUser_id(), ConstData.USER, "", gsonEx.g.toJson(user),
 						hashService.shortGenerateHashPassword(request.getRemoteAddr()));
 				return new ResponseEntity<>(updRes, new HttpHeaders(), HttpStatus.OK);
 			case HttpMethods.DELETE:
@@ -245,7 +247,7 @@ public class AdminController {
 				// Api定義作成
 				ApiSettingModel apiSetting = apiSettingInfo.toModel(body);
 				response = this.versatileBaseSchema.post(apiSetting.getApiUrl(), ConstData.AUTHENTICATION_GROUP, "",
-						gson.toJson(apiSetting), hashService.shortGenerateHashPassword(request.getRemoteAddr()));
+						gsonEx.g.toJson(apiSetting), hashService.shortGenerateHashPassword(request.getRemoteAddr()));
 
 			} catch (JsonValidatingException e) {
 				return new ResponseEntity<>(e.getMessage(), new HttpHeaders(), HttpStatus.BAD_REQUEST);

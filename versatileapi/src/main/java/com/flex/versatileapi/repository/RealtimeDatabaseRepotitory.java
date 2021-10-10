@@ -210,4 +210,19 @@ public class RealtimeDatabaseRepotitory implements IRepository {
 		
 	}
 
+
+	@Override
+	public Map<String, List<String>> insertAll(String repositoryKey, Map<String, Map<String, Object>> idValues) {
+		// TODO 自動生成されたメソッド・スタブ
+		return null;
+	}
+
+
+	@Override
+	public Map<String, String> updateAll(String repositoryKey, Map<String, Map<String, Object>> idValues) {
+		// TODO 自動生成されたメソッド・スタブ
+		return null;
+	}
+
+
 }

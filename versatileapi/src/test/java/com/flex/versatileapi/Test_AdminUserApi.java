@@ -25,7 +25,7 @@ import com.flex.versatileapi.service.HashService;
 import com.google.gson.Gson;
 
 @SpringBootTest
-public class AdminUserApiTest {
+public class Test_AdminUserApi {
 	private static Gson gson = new Gson();
 	private static RestTemplate restTemplate = new RestTemplate();
 	private JsonValidationService jvs = JsonValidationService.newInstance();
@@ -35,7 +35,7 @@ public class AdminUserApiTest {
 
 	@Test
 	void amindUser正常() throws IOException {
-		String baseUrl = TestConfig.AdminUrl() + "user/";
+		String baseUrl = Test_Config.AdminUrl() + "user/";
 		String userId = "testUser";
 
 		Map<String, Object> testData = new HashMap<String, Object>();
@@ -46,20 +46,20 @@ public class AdminUserApiTest {
 		// テスト前クリーン
 		testData.put("password", "PASSWORD2");
 		try {
-			TestHelper.delete(baseUrl + userId, gson.toJson(testData), TestConfig.AuthHeader());
+			Test_Helper.delete(baseUrl + userId, gson.toJson(testData), Test_Config.AuthHeader());
 		} catch (RestClientResponseException exception) {
 		}
 		testData.put("password", "PASSWORD");
 		try {
-			TestHelper.delete(baseUrl + userId, gson.toJson(testData), TestConfig.AuthHeader());
+			Test_Helper.delete(baseUrl + userId, gson.toJson(testData), Test_Config.AuthHeader());
 		} catch (RestClientResponseException exception) {
 		}
 
 		// 登録
-		TestHelper.post(baseUrl, gson.toJson(testData), TestConfig.AuthHeader());
+		Test_Helper.post(baseUrl, gson.toJson(testData), Test_Config.AuthHeader());
 
 		// 取得
-		Map<String, Object> res = gson.fromJson(TestHelper.get(baseUrl + userId, TestConfig.AuthHeader()), Map.class);
+		Map<String, Object> res = gson.fromJson(Test_Helper.get(baseUrl + userId, Test_Config.AuthHeader()), Map.class);
 		assertTrue(res.get("user_id").toString().equals(testData.get("user_id").toString()));
 		assertTrue(res.get("email").toString().equals(testData.get("email").toString()));
 		assertTrue(res.get("password").toString()
@@ -72,7 +72,7 @@ public class AdminUserApiTest {
 		testData.put("new_email","bbb@versatile.com");
 		int resStatusCode = 0;
 		try {
-			TestHelper.put(baseUrl, gson.toJson(testData), TestConfig.AuthHeader());
+			Test_Helper.put(baseUrl, gson.toJson(testData), Test_Config.AuthHeader());
 		} catch (RestClientResponseException exception) {
 			resStatusCode = exception.getRawStatusCode();
 		}
@@ -80,10 +80,10 @@ public class AdminUserApiTest {
 		
 		// 更新
 		testData.put("password", "PASSWORD");
-		TestHelper.put(baseUrl, gson.toJson(testData), TestConfig.AuthHeader());
+		Test_Helper.put(baseUrl, gson.toJson(testData), Test_Config.AuthHeader());
 		
 		// 取得(更新確認)
-		res = gson.fromJson(TestHelper.get(baseUrl + userId, TestConfig.AuthHeader()), Map.class);
+		res = gson.fromJson(Test_Helper.get(baseUrl + userId, Test_Config.AuthHeader()), Map.class);
 		assertTrue(res.get("user_id").toString().equals(testData.get("user_id").toString()));
 		assertTrue(res.get("email").toString().equals(testData.get("new_email").toString()));
 		assertTrue(res.get("password").toString()

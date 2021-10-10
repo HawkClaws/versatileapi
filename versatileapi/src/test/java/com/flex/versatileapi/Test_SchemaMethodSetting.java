@@ -15,14 +15,14 @@ import org.springframework.web.client.RestTemplate;
 import com.google.gson.Gson;
 
 @SpringBootTest
-class SchemaMethodSettingTests {
+class Test_SchemaMethodSetting {
 	private static Gson gson = new Gson();
 	private static RestTemplate restTemplate = new RestTemplate();
 
 	@Test
 	void JsonSchema_正常() {
 		String repository = "JsonSchemaTest";
-		String baseUrl = TestConfig.ApiUrl() + repository;
+		String baseUrl = Test_Config.ApiUrl() + repository;
 		
 		
 		String repositoryInfo =String.format("{\r\n"
@@ -67,7 +67,7 @@ class SchemaMethodSettingTests {
 		
 		
 		//Repository情報登録
-		TestHelper.post(TestConfig.ApiSettingUrl(), repositoryInfo,TestConfig.AuthHeader());
+		Test_Helper.post(Test_Config.ApiSettingUrl(), repositoryInfo,Test_Config.AuthHeader());
 		
 		
 		// テスト前クリーン
@@ -79,7 +79,7 @@ class SchemaMethodSettingTests {
 		// 登録(認証エラー)
 		int resStatusCode = 0;
 		try {
-			TestHelper.post(baseUrl, requestJson);
+			Test_Helper.post(baseUrl, requestJson);
 		} catch (RestClientResponseException exception) {
 			resStatusCode = exception.getRawStatusCode();
 		}
@@ -91,7 +91,7 @@ class SchemaMethodSettingTests {
 		header.put("Authorization", "asdasd");
 		resStatusCode = 0;
 		try {
-			TestHelper.post(baseUrl, requestJson,header);
+			Test_Helper.post(baseUrl, requestJson,header);
 		} catch (RestClientResponseException exception) {
 			resStatusCode = exception.getRawStatusCode();
 		}
@@ -102,7 +102,7 @@ class SchemaMethodSettingTests {
 		header.put("Authorization", "VersatileApi123"); 
 		resStatusCode = 0;
 		try {
-			TestHelper.post(baseUrl, requestJson,header);
+			Test_Helper.post(baseUrl, requestJson,header);
 		} catch (RestClientResponseException exception) {
 			resStatusCode = exception.getRawStatusCode();
 		}
@@ -113,14 +113,14 @@ class SchemaMethodSettingTests {
 		header = new HashMap<String,String>();
 		header.put("Authorization", "VersatileApi123"); 
 		resStatusCode = 0;
-		String resId = TestHelper.post(baseUrl, requestJson,header);
+		String resId = Test_Helper.post(baseUrl, requestJson,header);
 		
 		// 更新(NotImplementedエラー)
 		header = new HashMap<String,String>();
 		header.put("Authorization", "VersatileApi123"); 
 		resStatusCode = 0;
 		try {
-			TestHelper.put(baseUrl + "/" + resId, requestJson,header);
+			Test_Helper.put(baseUrl + "/" + resId, requestJson,header);
 		} catch (RestClientResponseException exception) {
 			resStatusCode = exception.getRawStatusCode();
 		}
@@ -128,7 +128,7 @@ class SchemaMethodSettingTests {
 		
 		//取得-認証なし（正常）
 		String responseJson = restTemplate.getForObject(baseUrl + "/" + resId, String.class);
-		assertTrue(TestHelper.jsonEquals(responseJson, requestJson));
+		assertTrue(Test_Helper.jsonEquals(responseJson, requestJson));
 	}
 
 }
