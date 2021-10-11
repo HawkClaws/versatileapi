@@ -7,9 +7,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import org.bson.BsonArray;
-import org.bson.BsonValue;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.util.NumberUtils;
 
@@ -169,7 +168,7 @@ public class MongoRepository implements IRepository {
 
 	@Override
 	public List<Object> getAll(String repositoryKey, List<QueryModel> queries) {
-		Document filter = new Document();
+		Bson filter = new Document();
 		Document sort = new Document();
 		int limit = 0;
 		int skip = 0;

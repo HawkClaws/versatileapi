@@ -7,12 +7,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.bson.Document;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
 import com.google.gson.Gson;
+import java.util.regex.*;
 
 @SpringBootTest
 class Test_ODataApi {
@@ -33,25 +35,26 @@ class Test_ODataApi {
 
 			testJsonList.put(jsonObj.get("guid").toString(), jsonObj);
 		}
-		
-		String schema = String.format("{  'authGroupId':'','jsonSchema':{  '$schema': 'http://json-schema.org/draft-04/schema#',  'type': 'object',  'properties': {    'index': {      'type': 'number'    },    'guid': {      'type': 'string'    },    'isActive': {      'type': 'boolean'    },    'balance': {      'type': 'string'    },    'picture': {      'type': 'string'    },    'age': {      'type': 'number'    },    'eyeColor': {      'type': 'string'    },    'name': {      'type': 'string'    },    'gender': {      'type': 'string'    },    'company': {      'type': 'string'    },    'email': {      'type': 'string'    },    'phone': {      'type': 'string'    },    'address': {      'type': 'string'    },    'about': {      'type': 'string'    },    'registered': {      'type': 'string'    },    'latitude': {      'type': 'number'    },    'longitude': {      'type': 'number'    },    'tags': {      'type': 'array',      'items': [        {          'type': 'string'        },        {          'type': 'string'        },        {          'type': 'string'        },        {          'type': 'string'        },        {          'type': 'string'        },        {          'type': 'string'        },        {          'type': 'string'        }      ]    },    'friends': {      'type': 'array',      'items': [        {          'type': 'object',          'properties': {            'id': {              'type': 'number'            },            'name': {              'type': 'string'            }          },          'required': [            'id',            'name'          ]        },        {          'type': 'object',          'properties': {            'id': {              'type': 'number'            },            'name': {              'type': 'string'            }          },          'required': [            'id',            'name'          ]        },        {          'type': 'object',          'properties': {            'id': {              'type': 'number'            },            'name': {              'type': 'string'            }          },          'required': [            'id',            'name'          ]        }      ]    },    'greeting': {      'type': 'string'    },    'favoriteFruit': {      'type': 'string'    }  }},'apiSecret':'','methodSettings':[],'apiUrl':'%s'}",repository);
+
+		String schema = String.format(
+				"{  'authGroupId':'','jsonSchema':{  '$schema': 'http://json-schema.org/draft-04/schema#',  'type': 'object',  'properties': {    'index': {      'type': 'number'    },    'guid': {      'type': 'string'    },    'isActive': {      'type': 'boolean'    },    'balance': {      'type': 'string'    },    'picture': {      'type': 'string'    },    'age': {      'type': 'number'    },    'eyeColor': {      'type': 'string'    },    'name': {      'type': 'string'    },    'gender': {      'type': 'string'    },    'company': {      'type': 'string'    },    'email': {      'type': 'string'    },    'phone': {      'type': 'string'    },    'address': {      'type': 'string'    },    'about': {      'type': 'string'    },    'registered': {      'type': 'string'    },    'latitude': {      'type': 'number'    },    'longitude': {      'type': 'number'    },    'tags': {      'type': 'array',      'items': [        {          'type': 'string'        },        {          'type': 'string'        },        {          'type': 'string'        },        {          'type': 'string'        },        {          'type': 'string'        },        {          'type': 'string'        },        {          'type': 'string'        }      ]    },    'friends': {      'type': 'array',      'items': [        {          'type': 'object',          'properties': {            'id': {              'type': 'number'            },            'name': {              'type': 'string'            }          },          'required': [            'id',            'name'          ]        },        {          'type': 'object',          'properties': {            'id': {              'type': 'number'            },            'name': {              'type': 'string'            }          },          'required': [            'id',            'name'          ]        },        {          'type': 'object',          'properties': {            'id': {              'type': 'number'            },            'name': {              'type': 'string'            }          },          'required': [            'id',            'name'          ]        }      ]    },    'greeting': {      'type': 'string'    },    'favoriteFruit': {      'type': 'string'    }  }},'apiSecret':'','methodSettings':[],'apiUrl':'%s'}",
+				repository);
 		schema = schema.replace("'", "\"");
-		
 
 		try {
 			restTemplate.delete(Test_Config.ApiSettingUrl() + repository);
 		} catch (RestClientResponseException exception) {
 		}
-		
-		Test_Helper.post(Test_Config.ApiSettingUrl() , schema,Test_Config.AuthHeader());
-		
+
+		Test_Helper.post(Test_Config.ApiSettingUrl(), schema, Test_Config.AuthHeader());
+
 		// テスト前クリーン
 		restTemplate.delete(baseUrl + "/all");
-		
+
 		// 登録
 		List<String> ids = new ArrayList<String>();
 		for (String key : testJsonList.keySet()) {
-			ids.add(Test_Helper.post(baseUrl , gson.toJson(testJsonList.get(key))));
+			ids.add(Test_Helper.post(baseUrl, gson.toJson(testJsonList.get(key))));
 		}
 
 		// orderby limit skip
@@ -86,19 +89,44 @@ class Test_ODataApi {
 		// filter 以上
 		response1 = restTemplate.getForObject(baseUrl + "/all?$filter=age ge 35", new Object[] {}.getClass());
 		assertTrue(response1.length == 2);
-		
+
 		// filter より小さい
 		response1 = restTemplate.getForObject(baseUrl + "/all?$filter=age lt 23", new Object[] {}.getClass());
 		assertTrue(response1.length == 1);
-		
+
 		// filter 以下
 		response1 = restTemplate.getForObject(baseUrl + "/all?$filter=age le 23", new Object[] {}.getClass());
 		assertTrue(response1.length == 2);
-		
-		//　not 
+
+		// not
 		response1 = restTemplate.getForObject(baseUrl + "/all?$filter=gender ne 'male'", new Object[] {}.getClass());
 		assertTrue(response1.length == 3);
 
+		// filter or
+		response1 = restTemplate.getForObject(baseUrl + "/all?$filter=contains(name,'nnan')",
+				new Object[] {}.getClass());
+		assertTrue(response1.length == 1);
+
+		response1 = restTemplate.getForObject(baseUrl + "/all?$filter=startsWith(greeting,'Hello')",
+				new Object[] {}.getClass());
+		assertTrue(response1.length == 6);
+		System.out.println(response1);
+
+		response1 = restTemplate.getForObject(baseUrl + "/all?$filter=endsWith(email,'.com')",
+				new Object[] {}.getClass());
+		assertTrue(response1.length == 6);
+
+		int resStatusCode = 0;
+		try {
+
+			response1 = restTemplate.getForObject(baseUrl + "/all?$filter=endsWith (email,'com')",
+					new Object[] {}.getClass());
+
+		} catch (RestClientResponseException exception) {
+			resStatusCode = exception.getRawStatusCode();
+		}
+
+		assertTrue(resStatusCode == 400);
 	}
 
 }
