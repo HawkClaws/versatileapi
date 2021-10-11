@@ -58,7 +58,7 @@ class Test_ODataApi {
 		}
 
 		// orderby limit skip
-		Object[] response1 = restTemplate.getForObject(baseUrl + "/all?$orderby=age desc&$limit=1",
+		Object[] response1 = restTemplate.getForObject(baseUrl + "/all?$orderby=age desc&$top=1",
 				new Object[] {}.getClass());
 		Object[] response2 = restTemplate.getForObject(baseUrl + "/all?$orderby=age asc&$skip=5",
 				new Object[] {}.getClass());

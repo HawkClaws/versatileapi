@@ -4,6 +4,8 @@ package com.flex.versatileapi.model;
 public enum QueryType {
 	FILTER, 
 	ORDERBY, 
-	LIMIT, 
-	SKIP
+	TOP, 
+	SKIP,
+	@Deprecated
+	LIMIT, //TODO ODataにlimitなんてない。Topの間違い。
 }

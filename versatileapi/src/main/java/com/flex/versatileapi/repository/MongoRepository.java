@@ -186,6 +186,7 @@ public class MongoRepository implements IRepository {
 				skip = NumberUtils.parseNumber(query.getValue(), Integer.class);
 				break;
 
+			case TOP:
 			case LIMIT:
 				limit = NumberUtils.parseNumber(query.getValue(), Integer.class);
 				break;
