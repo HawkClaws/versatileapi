@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import com.flex.versatileapi.config.ConstData;
 import com.flex.versatileapi.config.DBName;
+import com.flex.versatileapi.exceptions.DBWriteException;
 import com.flex.versatileapi.exceptions.ODataParseException;
 import com.google.api.client.http.HttpMethods;
 import com.google.firebase.internal.Objects;
@@ -71,8 +72,12 @@ public class VersatileService {
 					repositoryKey += "/";
 				repositoryKey += id;
 			}
-
-			response = versatileBase.post(postId, repositoryKey, queryString, body, userId);
+			try {
+				response = versatileBase.post(postId, repositoryKey, queryString, body, userId);
+			} catch (DBWriteException e) {
+				return new ResponseEntity<>(e.getMessage(), new HttpHeaders(), HttpStatus.BAD_REQUEST);
+			}
+			
 			return new ResponseEntity<>(response, new HttpHeaders(), HttpStatus.CREATED);
 
 		case HttpMethods.PUT:

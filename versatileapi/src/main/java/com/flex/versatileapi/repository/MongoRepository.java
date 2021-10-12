@@ -14,18 +14,22 @@ import org.springframework.util.NumberUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flex.versatileapi.config.SystemConfig;
+import com.flex.versatileapi.exceptions.DBWriteException;
 import com.flex.versatileapi.extend.CollectionEx;
 import com.flex.versatileapi.model.QueryModel;
 import com.flex.versatileapi.service.ODataMongoConverter;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoCommandException;
+import com.mongodb.MongoWriteException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.IndexOptions;
+import com.mongodb.client.model.Indexes;
 import com.mongodb.client.model.UpdateOptions;
 
 @Configurable
@@ -64,24 +68,41 @@ public class MongoRepository implements IRepository {
 	@Override
 	public Map<String, String> insert(String repository, String id, Map<String, Object> value) {
 
-		return upsert(repository, id, value);
-//		MongoCollection<Document> docs = db.getCollection(repository);
-//
-//		Document doc = new Document(value);
-//		doc.put("id", id);
-//		docs.insertOne(doc);
-//
-//		Map<String, String> res = new HashMap<String, String>();
-//		res.put("id", id);
-//		return res;
+		try {
+			MongoCollection<Document> docs = db.getCollection(repository);
+
+			Document doc = new Document(value);
+			docs.insertOne(doc);
+
+			Map<String, String> res = new HashMap<String, String>();
+			res.put("id", id);
+			return res;
+		} catch (MongoWriteException mwe) {
+			throw new DBWriteException(mwe.getMessage());
+		}
+
+	}
+
+	@Override
+	public Map<String, List<String>> insertAll(String repositoryKey, Map<String, Map<String, Object>> idValues) {
+		try {
+			MongoCollection<Document> docs = db.getCollection(repositoryKey);
+
+			List<Document> documents = idValues.values().stream().map(x -> new Document(x))
+					.collect(Collectors.toList());
+			docs.insertMany(documents);
+
+			Map<String, List<String>> res = new HashMap<String, List<String>>();
+			res.put("ids", idValues.keySet().stream().map(x -> x).collect(Collectors.toList()));
+
+			return res;
+		} catch (MongoWriteException mwe) {
+			throw new DBWriteException(mwe.getMessage());
+		}
 	}
 
 	@Override
 	public Map<String, String> update(String repository, String id, Map<String, Object> value) {
-		return upsert(repository, id, value);
-	}
-
-	private Map<String, String> upsert(String repository, String id, Map<String, Object> value) {
 		MongoCollection<Document> docs = db.getCollection(repository);
 
 		// updateオブジェクト
@@ -105,25 +126,6 @@ public class MongoRepository implements IRepository {
 	}
 
 	@Override
-	public Map<String, List<String>> insertAll(String repositoryKey, Map<String, Map<String, Object>> idValues) {
-		MongoCollection<Document> docs = db.getCollection(repositoryKey);
-		
-		//idを付与
-		for(String key : idValues.keySet()) {
-			Map<String, Object> temp = idValues.get(key);
-			temp.put("id", key);
-		}
-		
-		List<Document> documents = idValues.values().stream().map(x -> new Document(x)).collect(Collectors.toList());
-		docs.insertMany(documents);
-		
-		Map<String, List<String>> res = new HashMap<String, List<String>>();
-		res.put("ids", idValues.keySet().stream().map(x -> x).collect(Collectors.toList()));
-
-		return res;
-	}
-
-	@Override
 	public Map<String, String> updateAll(String repositoryKey, Map<String, Map<String, Object>> idValues) {
 		// TODO 自動生成されたメソッド・スタブ
 		return null;
@@ -140,14 +142,22 @@ public class MongoRepository implements IRepository {
 
 		// Indexを張る
 		boolean existsIndex = false;
+		boolean existsUnique = false;
 		for (Document doc : docs.listIndexes()) {
 			Map<String, Object> data = new ObjectMapper().convertValue(doc.get("key"), Map.class);
 			if (data.containsKey("$**")) {
 				existsIndex = true;
 			}
+			if (data.containsKey("id")) {
+				existsUnique = true;
+			}
 		}
 		if (existsIndex == false) {
 			docs.createIndex(new Document("$**", 1));
+		}
+		if (existsUnique == false) {
+			IndexOptions indexOptions = new IndexOptions().unique(true);
+			docs.createIndex(Indexes.ascending("id"), indexOptions);
 		}
 	}
 
@@ -236,7 +246,7 @@ public class MongoRepository implements IRepository {
 
 	public Map<String, String> deleteAll(String repositoryKey) {
 		MongoCollection<Document> docs = db.getCollection(repositoryKey);
-		docs.drop();
+		docs.deleteMany(new Document());
 
 		Map<String, String> res = new HashMap<String, String>();
 		res.put("repositoryKey", repositoryKey);

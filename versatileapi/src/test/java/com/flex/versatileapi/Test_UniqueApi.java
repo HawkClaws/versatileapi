@@ -61,7 +61,7 @@ public class Test_UniqueApi {
 		
 		
 		//Repository情報登録
-		Test_Helper.post(Test_Config.ApiSettingUrl(), repositoryInfo,Test_Config.AuthHeader());
+		Test_Helper.put(Test_Config.ApiSettingUrl(), repositoryInfo,Test_Config.AuthHeader());
 		
 		
 		// テスト前クリーン
@@ -79,7 +79,7 @@ public class Test_UniqueApi {
 		
 		//登録
 		String id = Test_Helper.post(baseUrl + "/" + ConstData.ID_UNIQUE, requestJson);
-		String id2 = Test_Helper.post(baseUrl + "/" + ConstData.ID_UNIQUE, requestJson);
+		String id2 = Test_Helper.put(baseUrl + "/" + ConstData.ID_UNIQUE, requestJson);
 		assertTrue(id.equals(id2));
 		
 		//取得

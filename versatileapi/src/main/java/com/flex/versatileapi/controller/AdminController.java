@@ -53,10 +53,7 @@ public class AdminController {
 	private JsonValidationService jvs = JsonValidationService.newInstance();
 
 	@Autowired
-	private VersatileBase versatileBaseSchema;
-	
-	@Autowired
-	private VersatileBase versatileBaseData;
+	private VersatileBase versatileBase;
 
 	@Autowired
 	private AuthenticationService authService;
@@ -72,15 +69,15 @@ public class AdminController {
 	 */
 	@GetMapping(value = "/admin/apisettinglist")
 	public ResponseEntity<Object> getRepository(HttpServletRequest request) {
-		this.versatileBaseSchema.setRepositoryName(DBName.API_SETTING_STORE);
-		this.versatileBaseData.setRepositoryName(DBName.API_SETTING_STORE);
+		this.versatileBase.setRepositoryName(DBName.API_SETTING_STORE);
+
 		// TODO 認証リファクタ
 		ResponseEntity resEnt = null;
 		resEnt = adminAuthorization(request.getHeader(ConstData.ADMIN_AUTHORIZATION));
 		if (resEnt != null)
 			return resEnt;
 
-		return new ResponseEntity<>(this.versatileBaseSchema.getRepository(), new HttpHeaders(), HttpStatus.OK);
+		return new ResponseEntity<>(this.versatileBase.getRepository(), new HttpHeaders(), HttpStatus.OK);
 	}
 
 	/**
@@ -88,7 +85,8 @@ public class AdminController {
 	 */
 	@RequestMapping(value = "/admin/apisetting/**")
 	public ResponseEntity<Object> apiSetting(HttpServletRequest request) throws IOException {
-		this.versatileBaseSchema.setRepositoryName(DBName.API_SETTING_STORE);
+		this.versatileBase.setRepositoryName(DBName.API_SETTING_STORE);
+		this.versatileBase.createIndex(ConstData.JSON_SCHEMA);
 		RepositoryUrlInfo info = urlConverter.getRepositoryInfo2(request.getRequestURI());
 
 		ResponseEntity resEnt = adminAuthorization(request.getHeader(ConstData.ADMIN_AUTHORIZATION));
@@ -100,7 +98,7 @@ public class AdminController {
 		switch (request.getMethod()) {
 
 		case HttpMethods.GET:
-			return new ResponseEntity<>(this.versatileBaseSchema.get(info.getId(), ConstData.JSON_SCHEMA, ""),
+			return new ResponseEntity<>(this.versatileBase.get(info.getId(), ConstData.JSON_SCHEMA, ""),
 					new HttpHeaders(), HttpStatus.OK);
 
 		case HttpMethods.POST:
@@ -121,22 +119,23 @@ public class AdminController {
 			try {
 				// Api定義作成
 				ApiSettingModel apiSetting = apiSettingInfo.toModel(body);
-				response = this.versatileBaseSchema.post(apiSetting.getApiUrl(), ConstData.JSON_SCHEMA, "",
+				response = this.versatileBase.put(apiSetting.getApiUrl(), ConstData.JSON_SCHEMA, "",
 						gsonEx.g.toJson(apiSetting), "");
 				
-				this.versatileBaseData.createIndex(apiSetting.getApiUrl());
 				
 				// Indexを張る
+				this.versatileBase.setRepositoryName(DBName.DATA_STORE);
+				this.versatileBase.createIndex(apiSetting.getApiUrl());
 				
 			} catch (JsonValidatingException e) {
 				return new ResponseEntity<>(e.getMessage(), new HttpHeaders(), HttpStatus.BAD_REQUEST);
 			}
 
-			this.versatileBaseSchema.clearApiSettingCache();
+			this.versatileBase.clearApiSettingCache();
 			break;
 		case HttpMethods.DELETE:
-			response = this.versatileBaseSchema.delete(info.getId(), ConstData.JSON_SCHEMA, "");
-			this.versatileBaseSchema.clearApiSettingCache();
+			response = this.versatileBase.delete(info.getId(), ConstData.JSON_SCHEMA, "");
+			this.versatileBase.clearApiSettingCache();
 			break;
 		}
 
@@ -151,7 +150,7 @@ public class AdminController {
 	@RequestMapping(value = "/admin/user/**")
 	public ResponseEntity<Object> user(HttpServletRequest request) throws IOException {
 		RepositoryUrlInfo info = urlConverter.getRepositoryInfo2(request.getRequestURI());
-		this.versatileBaseSchema.setRepositoryName(DBName.USER_STORE);
+		this.versatileBase.setRepositoryName(DBName.USER_STORE);
 		ResponseEntity<Object> resEnt = adminAuthorization(request.getHeader(ConstData.ADMIN_AUTHORIZATION));
 		if (resEnt != null)
 			return resEnt;
@@ -159,7 +158,7 @@ public class AdminController {
 		String body = request.getReader().lines().collect(Collectors.joining("\r\n"));
 
 		if (request.getMethod().toUpperCase().equals(HttpMethods.GET)) {
-			Object getRes = this.versatileBaseSchema.get(info.getId(), ConstData.USER, "");
+			Object getRes = this.versatileBase.get(info.getId(), ConstData.USER, "");
 			return new ResponseEntity<>(getRes, new HttpHeaders(), HttpStatus.OK);
 
 		}
@@ -175,14 +174,14 @@ public class AdminController {
 				if (problems.size() > 0)
 					return new ResponseEntity<>(problems.toString(), new HttpHeaders(), HttpStatus.BAD_REQUEST);
 
-				Object exists = this.versatileBaseSchema.get(user.getUser_id(), ConstData.USER, "");
+				Object exists = this.versatileBase.get(user.getUser_id(), ConstData.USER, "");
 				if (exists != null)
 					return new ResponseEntity<>("This USER_ID is already in use", HttpStatus.BAD_REQUEST);
 
 				// ユーザー作成
 				user = authService.toUser(user.getUser_id(), user.getPassword(), user.getEmail());
 
-				Object postRes = this.versatileBaseSchema.post(user.getUser_id(), ConstData.USER, "", gsonEx.g.toJson(user),
+				Object postRes = this.versatileBase.post(user.getUser_id(), ConstData.USER, "", gsonEx.g.toJson(user),
 						hashService.shortGenerateHashPassword(request.getRemoteAddr()));
 				return new ResponseEntity<>(postRes, new HttpHeaders(), HttpStatus.CREATED);
 			case HttpMethods.PUT:
@@ -195,7 +194,7 @@ public class AdminController {
 
 				// ユーザー更新(IDは変えられないようにする？)
 				user = authService.toUser(user.getUser_id(), user.getNew_password(), user.getNew_email());
-				Object updRes = this.versatileBaseSchema.put(user.getUser_id(), ConstData.USER, "", gsonEx.g.toJson(user),
+				Object updRes = this.versatileBase.put(user.getUser_id(), ConstData.USER, "", gsonEx.g.toJson(user),
 						hashService.shortGenerateHashPassword(request.getRemoteAddr()));
 				return new ResponseEntity<>(updRes, new HttpHeaders(), HttpStatus.OK);
 			case HttpMethods.DELETE:
@@ -203,7 +202,7 @@ public class AdminController {
 				if (authService.authUser(user.getUser_id(), user.getPassword()) == false)
 					return new ResponseEntity<>("Can't find USER_ID or authentication failure", HttpStatus.FORBIDDEN);
 				// ユーザー削除
-				Object delRes = this.versatileBaseSchema.delete(user.getUser_id(), ConstData.USER, "");
+				Object delRes = this.versatileBase.delete(user.getUser_id(), ConstData.USER, "");
 				return new ResponseEntity<>(delRes, new HttpHeaders(), HttpStatus.NO_CONTENT);
 			}
 		} catch (JsonParsingException e) {
@@ -235,7 +234,7 @@ public class AdminController {
 		switch (request.getMethod()) {
 
 		case HttpMethods.GET:
-			return new ResponseEntity<>(this.versatileBaseSchema.get(info.getId(), ConstData.AUTHENTICATION_GROUP, ""),
+			return new ResponseEntity<>(this.versatileBase.get(info.getId(), ConstData.AUTHENTICATION_GROUP, ""),
 					new HttpHeaders(), HttpStatus.OK);
 
 		case HttpMethods.POST:
@@ -246,18 +245,18 @@ public class AdminController {
 			try {
 				// Api定義作成
 				ApiSettingModel apiSetting = apiSettingInfo.toModel(body);
-				response = this.versatileBaseSchema.post(apiSetting.getApiUrl(), ConstData.AUTHENTICATION_GROUP, "",
+				response = this.versatileBase.post(apiSetting.getApiUrl(), ConstData.AUTHENTICATION_GROUP, "",
 						gsonEx.g.toJson(apiSetting), hashService.shortGenerateHashPassword(request.getRemoteAddr()));
 
 			} catch (JsonValidatingException e) {
 				return new ResponseEntity<>(e.getMessage(), new HttpHeaders(), HttpStatus.BAD_REQUEST);
 			}
 
-			this.versatileBaseSchema.clearApiSettingCache();
+			this.versatileBase.clearApiSettingCache();
 			break;
 		case HttpMethods.DELETE:
-			response = this.versatileBaseSchema.delete(info.getId(), ConstData.AUTHENTICATION_GROUP, "");
-			this.versatileBaseSchema.clearApiSettingCache();
+			response = this.versatileBase.delete(info.getId(), ConstData.AUTHENTICATION_GROUP, "");
+			this.versatileBase.clearApiSettingCache();
 			break;
 		}
 

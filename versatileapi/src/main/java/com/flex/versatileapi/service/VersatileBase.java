@@ -67,23 +67,30 @@ public class VersatileBase {
 		if (ConstData.ID_ALL.equals(id)) {
 			Map<String, Map<String, Object>> idValues = new HashMap<String, Map<String, Object>>();
 			for (Map<String, Object> jsonData : gsonEx.toMapList(body)) {
-				jsonData = addInsertBaseData(jsonData, userId, now);
-				idValues.put(UUID.randomUUID().toString(), jsonData);
+				jsonData = addInsertBaseData(jsonData, userId, now, UUID.randomUUID().toString());
+				idValues.put(jsonData.get("id").toString(), jsonData);
 			}
 			return repository.insertAll(repositoryKey, idValues);
 		} else {
-			Map<String, Object> value = gsonEx.toMap(body);
-			value = addInsertBaseData(value, userId, now);
-			return repository.insert(repositoryKey, id, value);
+			Map<String, Object> jsonData = gsonEx.toMap(body);
+			
+			// 単体は引数として渡されたidを使用する
+			jsonData = addInsertBaseData(jsonData, userId, now, id);
+			return repository.insert(repositoryKey, jsonData.get("id").toString(), jsonData);
 		}
-
 	}
 
-	private Map<String, Object> addInsertBaseData(Map<String, Object> value, String userId, Timestamp now) {
-		value.put(ConstData.REG_DATE, now);
-		value.put(ConstData.UPD_DATE, now);
-		value.put(ConstData.UNIQUE_ID, userId);
-		return value;
+	private Map<String, Object> addInsertBaseData(Map<String, Object> jsonData, String userId, Timestamp now,
+			String id) {
+		// データにIDがある場合はIDを使用する。
+		if (jsonData.containsKey("id")) {
+			id = jsonData.get("id").toString();
+		}
+		jsonData.put("id", id);
+		jsonData.put(ConstData.REG_DATE, now);
+		jsonData.put(ConstData.UPD_DATE, now);
+		jsonData.put(ConstData.UNIQUE_ID, userId);
+		return jsonData;
 	}
 
 	public Object put(String id, String repositoryKey, String queryString, String body, String userId) {
@@ -108,7 +115,8 @@ public class VersatileBase {
 	public ResponseEntity checkUseApi(String repositoryKey, String id, String method, String json,
 			String authorization) {
 
-		if (method.equals(HttpMethods.POST.toString()) && id.equals(ConstData.ID_UNIQUE) == false &&id.equals(ConstData.ID_ALL) == false) {
+		if (method.equals(HttpMethods.POST.toString()) && id.equals(ConstData.ID_UNIQUE) == false
+				&& id.equals(ConstData.ID_ALL) == false) {
 			if (repositoryKey.equals("") == false)
 				repositoryKey += "/";
 			repositoryKey += id;

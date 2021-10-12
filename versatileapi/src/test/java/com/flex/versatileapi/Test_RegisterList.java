@@ -26,12 +26,10 @@ public class Test_RegisterList {
 
 	@Test
 	public void RegisterAll_正常() {
-		String repository = "test/repository";// なんでもOK!なのがこのシステムの魅力！
+		String repository = "test/RegisterList";
 		String baseUrl = Test_Config.ApiUrl() + repository;
 
-		String schema = String.format(
-				"{  'authGroupId':'','jsonSchema':{'$schema': 'http://json-schema.org/draft-04/schema#',  'additionalProperties': false, 'type': 'object',  'properties': {    'category': {      'type': 'string'    },    'name': {      'type': 'string'    },    'value': {      'type': 'string'    },    'detail': {      'type': 'object',      'properties': {        'weight': {          'type': 'string'        },        'description': {          'type': 'string'        }      },      'required': [        'weight',        'description'      ]    }  }},'apiSecret':'','methodSettings':[],'apiUrl':'%s'}",
-				repository);
+		String schema = String.format("{  'authGroupId':'','jsonSchema':{'$schema': 'http://json-schema.org/draft-04/schema#',  'additionalProperties': false, 'type': 'object',  'properties': {   'id': {          'type': 'string'        },      'category': {      'type': 'string'    },    'name': {      'type': 'string'    },    'value': {      'type': 'string'    },    'detail': {      'type': 'object',      'properties': {    'weight': {          'type': 'string'        },        'description': {          'type': 'string'        }      },      'required': [        'weight',        'description'      ]    }  }},'apiSecret':'','methodSettings':[],'apiUrl':'%s'}",repository);
 		schema = schema.replace("'", "\"");
 
 		try {
@@ -47,8 +45,21 @@ public class Test_RegisterList {
 		String requestJson = "[{'category':'果物','name':'バナナ','value':'120'},{'category':'果物','name':'りんご','value':'80','detail':{'weight':'40','description':'赤いいフルーツ'}}]";
 
 		// 登録
+		restTemplate.postForEntity(baseUrl + "/all", requestJson, Map.class).getBody();
+
+		
+		// テスト前クリーン
+		restTemplate.delete(baseUrl + "/all");
+
+		// 登録(データにIDを付与)
+		requestJson = "[{'id':'testid1','category':'果物','name':'バナナ','value':'120'},{'id':'testid2','category':'果物','name':'りんご','value':'80','detail':{'weight':'40','description':'赤いいフルーツ'}}]";
 		Map resIds = restTemplate.postForEntity(baseUrl + "/all", requestJson, Map.class).getBody();
 
+		// 取得
+		restTemplate.getForObject(baseUrl + "/testid1", String.class);
+		restTemplate.getForObject(baseUrl + "/testid2", String.class);
+		
+		
 		// count
 		Map<String, Object> map = restTemplate.getForObject(baseUrl + "/count", Map.class);
 		assertTrue((int) map.get("count") == 2);
