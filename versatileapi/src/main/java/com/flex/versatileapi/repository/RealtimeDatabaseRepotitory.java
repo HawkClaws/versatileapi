@@ -1,8 +1,11 @@
 package com.flex.versatileapi.repository;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,8 +38,12 @@ public class RealtimeDatabaseRepotitory implements IRepository {
 
 	}
 
-
 	private void FirebaseInit() {
+		File file = new File(firebaseJsonFileName);
+		if (file.exists() == false) {
+			return;
+		}
+
 		InputStream stream_json = null;
 		try {
 			stream_json = new FileInputStream(firebaseJsonFileName);
@@ -119,14 +126,12 @@ public class RealtimeDatabaseRepotitory implements IRepository {
 		res.put("repositoryKey", repositoryKey);
 		return res;
 	}
-	
-	
-	//非同期
+
+	// 非同期
 	private void asyncUpsertCommon(DatabaseReference ref, Object value) {
 		ref.setValue(value);
 	}
-	
-	
+
 	private void upsertCommon(DatabaseReference ref, Object value) throws InterruptedException, ExecutionException {
 		final SettableApiFuture<Void> future = SettableApiFuture.create();
 		ref.setValue(value, new DatabaseReference.CompletionListener() {
@@ -151,7 +156,7 @@ public class RealtimeDatabaseRepotitory implements IRepository {
 		return getCommon(ref).getValue();
 	}
 
-	public List<Object> getAll(String repositoryKey,List<QueryModel> queries) {
+	public List<Object> getAll(String repositoryKey, List<QueryModel> queries) {
 		DatabaseReference ref = DatabaseReference(repositoryKey);
 		List<Object> res = new ArrayList<Object>();
 		for (DataSnapshot snap : getCommon(ref).getChildren()) {
@@ -203,13 +208,11 @@ public class RealtimeDatabaseRepotitory implements IRepository {
 		return null;
 	}
 
-
 	@Override
 	public void createIndex(String repositoryKey) {
 		// TODO 自動生成されたメソッド・スタブ
-		
-	}
 
+	}
 
 	@Override
 	public Map<String, List<String>> insertAll(String repositoryKey, Map<String, Map<String, Object>> idValues) {
@@ -217,12 +220,10 @@ public class RealtimeDatabaseRepotitory implements IRepository {
 		return null;
 	}
 
-
 	@Override
 	public Map<String, String> updateAll(String repositoryKey, Map<String, Map<String, Object>> idValues) {
 		// TODO 自動生成されたメソッド・スタブ
 		return null;
 	}
-
 
 }
