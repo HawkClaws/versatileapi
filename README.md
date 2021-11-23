@@ -60,6 +60,9 @@ SampleDifin（API定義）
 ```
 
 TODO
+- ※ControllerからRepositoryは触らないように直す
+- ※ContorollerからServiceに渡すときはModelに詰める
+- ※ResponseEntityはContorollerで作る（各HTTPメソッド毎のResponseを作る。Exceptionもここで処理）
 - JsonSchemaでFKバリデーション実装
 - 認証周り実装
 ![image](https://user-images.githubusercontent.com/62013138/126886509-507b3fe1-66fa-445f-9cb4-b7dfe61d032c.png)
