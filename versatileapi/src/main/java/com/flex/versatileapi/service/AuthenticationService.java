@@ -17,6 +17,9 @@ import com.flex.versatileapi.exceptions.ODataParseException;
 import com.flex.versatileapi.extend.GsonEx;
 import com.flex.versatileapi.model.MethodSetting;
 import com.flex.versatileapi.model.User;
+import com.flex.versatileapi.repository.ApiSettingRepository;
+import com.flex.versatileapi.repository.AuthenticationGroupRepository;
+import com.flex.versatileapi.repository.UserRepository;
 import com.google.gson.Gson;
 
 import lombok.Data;
@@ -26,8 +29,14 @@ import lombok.RequiredArgsConstructor;
 public class AuthenticationService {
 
 	@Autowired
-	private VersatileBase versatileBase;
+	private ApiSettingRepository apiSettingRepository;
+	
+	@Autowired
+	private UserRepository userRepository;
 
+	@Autowired
+	private AuthenticationGroupRepository authenticationGroupRepository;
+	
 	@Autowired
 	private HashService hashService;
 	
@@ -58,12 +67,10 @@ public class AuthenticationService {
 	 *  UserGroup認証を行う
 	 */
 	public Boolean isAllowedAuth(String userId, String password, String authGroupKey) throws ODataParseException {
-		this.versatileBase.setRepositoryName(DBName.API_SETTING_STORE);
 		
 		if(authUser(userId, password) == false)
 			return false;
 
-		this.versatileBase.setRepositoryName(DBName.AUTHENTICATION_GROUP_STORE);
 		return authRepositoryGroup(authGroupKey, userId);
 	}
 	
@@ -96,12 +103,11 @@ public class AuthenticationService {
 	 *  AuthGroupを作成します
 	 */
 	public Map<String, Object> toAuthGroup(String authGroupKey, String userId, String ipAddress) {
-		this.versatileBase.setRepositoryName(DBName.AUTHENTICATION_GROUP_STORE);
 
 		Map<String, Object> authGroupUser = new HashMap<String, Object>();
 		authGroupUser.put("user_id", userId);
 
-		this.versatileBase.post(userId, authGroupKey, "",
+		this.authenticationGroupRepository.post(userId, authGroupKey, "",
 				gsonEx.g.toJson(authGroupUser), hashService.shortGenerateHashPassword(ipAddress));
 		return authGroupUser;
 	}
@@ -110,20 +116,18 @@ public class AuthenticationService {
 	 *  UserをAuthGroupに追加します
 	 */
 	public String addAuthGroup(String authGroupKey, String userId, String ipAddress) {
-		this.versatileBase.setRepositoryName(DBName.AUTHENTICATION_GROUP_STORE);
 
 		Map<String, Object> authGroupUser = new HashMap<String, Object>();
 		authGroupUser.put("user_id", userId);
 
-		this.versatileBase.post(userId, authGroupKey, "",
+		this.authenticationGroupRepository.post(userId, authGroupKey, "",
 				gsonEx.g.toJson(authGroupUser), hashService.shortGenerateHashPassword(ipAddress));
 		return "";
 	}
 
 	public Boolean authUser(String userId, String rawPassword) throws ODataParseException {
 		// ユーザー認証
-		this.versatileBase.setRepositoryName(DBName.USER_STORE);
-		Object userObj = this.versatileBase.get(userId, ConstData.USER, "");
+		Object userObj = this.userRepository.get(userId, ConstData.USER, "");
 		if (userObj == null)
 			return false;
 
@@ -133,8 +137,7 @@ public class AuthenticationService {
 
 	public Boolean authRepositoryGroup(String authGroupKey, String userId) throws ODataParseException {
 		// AuthGroupにユーザーが含まれているかどうか
-		this.versatileBase.setRepositoryName(DBName.AUTHENTICATION_GROUP_STORE);
-		Object userObj = this.versatileBase.get(userId, authGroupKey, "");
+		Object userObj = this.authenticationGroupRepository.get(userId, authGroupKey, "");
 		if (userObj == null)
 			return false;
 		

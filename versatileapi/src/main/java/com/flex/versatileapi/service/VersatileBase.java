@@ -29,14 +29,13 @@ import com.flex.versatileapi.repository.MongoRepository;
 import com.google.api.client.http.HttpMethods;
 import com.google.gson.Gson;
 
-@Component
 public class VersatileBase {
 //	@Autowired
 //	RealtimeDatabaseRepotitory repository;
 	private IRepository repository = null;
 
 	// DB切り替え。 TODO：良くない作りなのでいい感じに直したい
-	public void setRepositoryName(DBName dbName) {
+	public VersatileBase(DBName dbName) {
 		this.repository = new MongoRepository(dbName.getString());
 	}
 

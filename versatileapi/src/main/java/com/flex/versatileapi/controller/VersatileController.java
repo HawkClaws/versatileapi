@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.flex.versatileapi.config.ConstData;
 import com.flex.versatileapi.config.DBName;
 import com.flex.versatileapi.model.RepositoryUrlInfo;
+import com.flex.versatileapi.repository.DataStoreRepository;
 import com.flex.versatileapi.service.Logging;
 import com.flex.versatileapi.service.UrlConverter;
 import com.flex.versatileapi.service.VersatileService;
@@ -30,6 +31,8 @@ public class VersatileController {
 	@Autowired
 	private UrlConverter urlConverter;
 
+	@Autowired
+	private DataStoreRepository dataStoreRepository;
 	
 	/**
 	 * versatileApiの実行
@@ -47,7 +50,7 @@ public class VersatileController {
 
 		return versatileService.execute(info.getRepositoryKey(), info.getId(), method, body,
 				request.getHeader(ConstData.AUTHORIZATION), request.getRemoteAddr(), request.getQueryString(),
-				DBName.DATA_STORE);
+				dataStoreRepository);
 	}
 	
 	

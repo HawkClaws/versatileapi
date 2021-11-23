@@ -29,6 +29,10 @@ import com.flex.versatileapi.extend.GsonEx;
 import com.flex.versatileapi.model.ApiSettingModel;
 import com.flex.versatileapi.model.RepositoryUrlInfo;
 import com.flex.versatileapi.model.User;
+import com.flex.versatileapi.repository.ApiSettingRepository;
+import com.flex.versatileapi.repository.AuthenticationGroupRepository;
+import com.flex.versatileapi.repository.DataStoreRepository;
+import com.flex.versatileapi.repository.UserRepository;
 import com.flex.versatileapi.service.ApiSettingInfo;
 import com.flex.versatileapi.service.AuthenticationService;
 import com.flex.versatileapi.service.HashService;
@@ -53,7 +57,16 @@ public class AdminController {
 	private JsonValidationService jvs = JsonValidationService.newInstance();
 
 	@Autowired
-	private VersatileBase versatileBase;
+	private ApiSettingRepository apiSettingRepository;
+	
+	@Autowired
+	private DataStoreRepository dataStoreRepository;
+	
+	@Autowired
+	private UserRepository userRepository;
+	
+	@Autowired
+	private AuthenticationGroupRepository authenticationGroupRepository;
 
 	@Autowired
 	private AuthenticationService authService;
@@ -69,7 +82,6 @@ public class AdminController {
 	 */
 	@GetMapping(value = "/admin/apisettinglist")
 	public ResponseEntity<Object> getRepository(HttpServletRequest request) {
-		this.versatileBase.setRepositoryName(DBName.API_SETTING_STORE);
 
 		// TODO 認証リファクタ
 		ResponseEntity resEnt = null;
@@ -77,7 +89,7 @@ public class AdminController {
 		if (resEnt != null)
 			return resEnt;
 
-		return new ResponseEntity<>(this.versatileBase.getRepository(), new HttpHeaders(), HttpStatus.OK);
+		return new ResponseEntity<>(this.apiSettingRepository.getRepository(), new HttpHeaders(), HttpStatus.OK);
 	}
 
 	/**
@@ -85,8 +97,7 @@ public class AdminController {
 	 */
 	@RequestMapping(value = "/admin/apisetting/**")
 	public ResponseEntity<Object> apiSetting(HttpServletRequest request) throws IOException {
-		this.versatileBase.setRepositoryName(DBName.API_SETTING_STORE);
-		this.versatileBase.createIndex(ConstData.JSON_SCHEMA);
+		this.apiSettingRepository.createIndex(ConstData.JSON_SCHEMA);
 		RepositoryUrlInfo info = urlConverter.getRepositoryInfo2(request.getRequestURI());
 
 		ResponseEntity resEnt = adminAuthorization(request.getHeader(ConstData.ADMIN_AUTHORIZATION));
@@ -98,7 +109,7 @@ public class AdminController {
 		switch (request.getMethod()) {
 
 		case HttpMethods.GET:
-			return new ResponseEntity<>(this.versatileBase.get(info.getId(), ConstData.JSON_SCHEMA, ""),
+			return new ResponseEntity<>(this.apiSettingRepository.get(info.getId(), ConstData.JSON_SCHEMA, ""),
 					new HttpHeaders(), HttpStatus.OK);
 
 		case HttpMethods.POST:
@@ -119,23 +130,22 @@ public class AdminController {
 			try {
 				// Api定義作成
 				ApiSettingModel apiSetting = apiSettingInfo.toModel(body);
-				response = this.versatileBase.put(apiSetting.getApiUrl(), ConstData.JSON_SCHEMA, "",
+				response = this.apiSettingRepository.put(apiSetting.getApiUrl(), ConstData.JSON_SCHEMA, "",
 						gsonEx.g.toJson(apiSetting), "");
 				
 				
 				// Indexを張る
-				this.versatileBase.setRepositoryName(DBName.DATA_STORE);
-				this.versatileBase.createIndex(apiSetting.getApiUrl());
+				this.dataStoreRepository.createIndex(apiSetting.getApiUrl());
 				
 			} catch (JsonValidatingException e) {
 				return new ResponseEntity<>(e.getMessage(), new HttpHeaders(), HttpStatus.BAD_REQUEST);
 			}
 
-			this.versatileBase.clearApiSettingCache();
+			this.apiSettingRepository.clearApiSettingCache();
 			break;
 		case HttpMethods.DELETE:
-			response = this.versatileBase.delete(info.getId(), ConstData.JSON_SCHEMA, "");
-			this.versatileBase.clearApiSettingCache();
+			response = this.apiSettingRepository.delete(info.getId(), ConstData.JSON_SCHEMA, "");
+			this.apiSettingRepository.clearApiSettingCache();
 			break;
 		}
 
@@ -150,7 +160,7 @@ public class AdminController {
 	@RequestMapping(value = "/admin/user/**")
 	public ResponseEntity<Object> user(HttpServletRequest request) throws IOException {
 		RepositoryUrlInfo info = urlConverter.getRepositoryInfo2(request.getRequestURI());
-		this.versatileBase.setRepositoryName(DBName.USER_STORE);
+
 		ResponseEntity<Object> resEnt = adminAuthorization(request.getHeader(ConstData.ADMIN_AUTHORIZATION));
 		if (resEnt != null)
 			return resEnt;
@@ -158,7 +168,7 @@ public class AdminController {
 		String body = request.getReader().lines().collect(Collectors.joining("\r\n"));
 
 		if (request.getMethod().toUpperCase().equals(HttpMethods.GET)) {
-			Object getRes = this.versatileBase.get(info.getId(), ConstData.USER, "");
+			Object getRes = this.userRepository.get(info.getId(), ConstData.USER, "");
 			return new ResponseEntity<>(getRes, new HttpHeaders(), HttpStatus.OK);
 
 		}
@@ -174,14 +184,14 @@ public class AdminController {
 				if (problems.size() > 0)
 					return new ResponseEntity<>(problems.toString(), new HttpHeaders(), HttpStatus.BAD_REQUEST);
 
-				Object exists = this.versatileBase.get(user.getUser_id(), ConstData.USER, "");
+				Object exists = this.userRepository.get(user.getUser_id(), ConstData.USER, "");
 				if (exists != null)
 					return new ResponseEntity<>("This USER_ID is already in use", HttpStatus.BAD_REQUEST);
 
 				// ユーザー作成
 				user = authService.toUser(user.getUser_id(), user.getPassword(), user.getEmail());
 
-				Object postRes = this.versatileBase.post(user.getUser_id(), ConstData.USER, "", gsonEx.g.toJson(user),
+				Object postRes = this.userRepository.post(user.getUser_id(), ConstData.USER, "", gsonEx.g.toJson(user),
 						hashService.shortGenerateHashPassword(request.getRemoteAddr()));
 				return new ResponseEntity<>(postRes, new HttpHeaders(), HttpStatus.CREATED);
 			case HttpMethods.PUT:
@@ -194,7 +204,7 @@ public class AdminController {
 
 				// ユーザー更新(IDは変えられないようにする？)
 				user = authService.toUser(user.getUser_id(), user.getNew_password(), user.getNew_email());
-				Object updRes = this.versatileBase.put(user.getUser_id(), ConstData.USER, "", gsonEx.g.toJson(user),
+				Object updRes = this.userRepository.put(user.getUser_id(), ConstData.USER, "", gsonEx.g.toJson(user),
 						hashService.shortGenerateHashPassword(request.getRemoteAddr()));
 				return new ResponseEntity<>(updRes, new HttpHeaders(), HttpStatus.OK);
 			case HttpMethods.DELETE:
@@ -202,7 +212,7 @@ public class AdminController {
 				if (authService.authUser(user.getUser_id(), user.getPassword()) == false)
 					return new ResponseEntity<>("Can't find USER_ID or authentication failure", HttpStatus.FORBIDDEN);
 				// ユーザー削除
-				Object delRes = this.versatileBase.delete(user.getUser_id(), ConstData.USER, "");
+				Object delRes = this.userRepository.delete(user.getUser_id(), ConstData.USER, "");
 				return new ResponseEntity<>(delRes, new HttpHeaders(), HttpStatus.NO_CONTENT);
 			}
 		} catch (JsonParsingException e) {
@@ -234,7 +244,7 @@ public class AdminController {
 		switch (request.getMethod()) {
 
 		case HttpMethods.GET:
-			return new ResponseEntity<>(this.versatileBase.get(info.getId(), ConstData.AUTHENTICATION_GROUP, ""),
+			return new ResponseEntity<>(this.authenticationGroupRepository.get(info.getId(), ConstData.AUTHENTICATION_GROUP, ""),
 					new HttpHeaders(), HttpStatus.OK);
 
 		case HttpMethods.POST:
@@ -245,18 +255,18 @@ public class AdminController {
 			try {
 				// Api定義作成
 				ApiSettingModel apiSetting = apiSettingInfo.toModel(body);
-				response = this.versatileBase.post(apiSetting.getApiUrl(), ConstData.AUTHENTICATION_GROUP, "",
+				response = this.authenticationGroupRepository.post(apiSetting.getApiUrl(), ConstData.AUTHENTICATION_GROUP, "",
 						gsonEx.g.toJson(apiSetting), hashService.shortGenerateHashPassword(request.getRemoteAddr()));
 
 			} catch (JsonValidatingException e) {
 				return new ResponseEntity<>(e.getMessage(), new HttpHeaders(), HttpStatus.BAD_REQUEST);
 			}
 
-			this.versatileBase.clearApiSettingCache();
+			this.apiSettingRepository.clearApiSettingCache();
 			break;
 		case HttpMethods.DELETE:
-			response = this.versatileBase.delete(info.getId(), ConstData.AUTHENTICATION_GROUP, "");
-			this.versatileBase.clearApiSettingCache();
+			response = this.authenticationGroupRepository.delete(info.getId(), ConstData.AUTHENTICATION_GROUP, "");
+			this.apiSettingRepository.clearApiSettingCache();
 			break;
 		}
 

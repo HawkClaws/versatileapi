@@ -14,6 +14,7 @@ import com.flex.versatileapi.config.ConstData;
 import com.flex.versatileapi.config.DBName;
 import com.flex.versatileapi.exceptions.DBWriteException;
 import com.flex.versatileapi.exceptions.ODataParseException;
+import com.flex.versatileapi.repository.ApiSettingRepository;
 import com.google.api.client.http.HttpMethods;
 import com.google.firebase.internal.Objects;
 import com.google.gson.Gson;
@@ -24,27 +25,25 @@ public class VersatileService {
 	private Gson gson = new Gson();
 
 	@Autowired
-	private VersatileBase versatileBase;
-
-	@Autowired
 	private HashService hashService;
+	
+	@Autowired
+	private ApiSettingRepository apiSettingRepository;
 
 	public ResponseEntity<Object> execute(String repositoryKey, String id, String method, String body,
-			String authorization, String ipAddress, String queryString, DBName targetdb)
+			String authorization, String ipAddress, String queryString, VersatileBase versatileBase)
 			throws IOException, InterruptedException, ExecutionException {
 
 		ResponseEntity responseEntity = null;
 
 		// JsonSchemaバリデーション・認証・許可されているメソッドをチェック
-		this.versatileBase.setRepositoryName(DBName.API_SETTING_STORE);
-		responseEntity = versatileBase.checkUseApi(repositoryKey, id, method, body, authorization);
+		responseEntity = apiSettingRepository.checkUseApi(repositoryKey, id, method, body, authorization);
 
 		if (responseEntity != null)
 			return responseEntity;
 
 		Object response = null;
 		// 各メソッドの処理を実行
-		this.versatileBase.setRepositoryName(targetdb);
 		switch (method) {
 		case HttpMethods.GET:
 			try {
